@@ -1036,6 +1036,7 @@
       buildGrid();
       applyI18n();
       syncAll();
+      mutate();
       showToast(t("toast.reset"));
     });
   }

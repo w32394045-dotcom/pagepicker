@@ -142,5 +142,5 @@
   "range.directPlaceholder": "例如 1-5, 8, 10-13",
   "parity.directPlaceholder": "例如 odd:1-99; even:2-100",
   "settings.reset": "恢复默认",
-  "settings.resetConfirm": "恢复默认设置并清空当前选择？"
+  "settings.resetConfirm": "恢复默认设置，并清空当前选择与历史记录？"
 }

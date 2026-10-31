@@ -142,5 +142,5 @@
   "range.directPlaceholder": "예: 1-5, 8, 10-13",
   "parity.directPlaceholder": "예: odd:1-99; even:2-100",
   "settings.reset": "기본값 복원",
-  "settings.resetConfirm": "설정을 기본값으로 되돌리고 현재 선택을 지울까요?"
+  "settings.resetConfirm": "설정을 기본값으로 되돌리고 현재 선택과 기록을 지울까요?"
 }

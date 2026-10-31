@@ -142,5 +142,5 @@
   "range.directPlaceholder": "e.g. 1-5, 8, 10-13",
   "parity.directPlaceholder": "e.g. odd:1-99; even:2-100",
   "settings.reset": "Restore defaults",
-  "settings.resetConfirm": "Restore the default settings and clear the current selection?"
+  "settings.resetConfirm": "Restore the default settings and clear the current selection and history?"
 }

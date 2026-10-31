@@ -263,6 +263,73 @@ if (workerHtml !== null) {
 const workerSize = (readBuf("worker.js").length / 1024).toFixed(1);
 info(`sizes: index.html ${(readBuf("index.html").length / 1024).toFixed(1)} KB · worker.js ${workerSize} KB`);
 
+/* ================================================================ 3b. domain / entry points */
+
+section("3b. primary domain + entry-point / publish consistency");
+
+const pkg = JSON.parse(read("package.json"));
+const README = read("README.md");
+const README_ZH = read("README.zh-CN.md");
+let homepageHost = null;
+try { homepageHost = new URL(pkg.homepage).host; } catch { /* handled below */ }
+if (!homepageHost) bad(`package.json homepage is not a valid URL: ${pkg.homepage}`);
+else ok(`package.json homepage = ${pkg.homepage}`);
+
+/* the retired primary domain must not survive anywhere that ships */
+const RETIRED_DOMAIN = "pagepicker.xszx.cc.cd";
+const shippedTextFiles = ["README.md", "README.zh-CN.md", "package.json", "index.html", "worker.js"];
+for (const f of existsSync(join(ROOT, "tools")) ? readdirSync(join(ROOT, "tools")).filter((f) => f.endsWith(".mjs")).map((f) => "tools/" + f) : []) {
+  shippedTextFiles.push(f);
+}
+const staleDomain = shippedTextFiles.filter((f) => read(f).includes(RETIRED_DOMAIN));
+if (staleDomain.length) bad(`retired domain ${RETIRED_DOMAIN} still referenced in: ${staleDomain.join(", ")}`);
+else ok(`retired domain ${RETIRED_DOMAIN} no longer referenced in shipped files`);
+
+for (const [name, text] of [["README.md", README], ["README.zh-CN.md", README_ZH]]) {
+  if (homepageHost && !text.includes(homepageHost)) bad(`${name} does not mention the package.json homepage host (${homepageHost})`);
+  else ok(`${name} points at the primary domain ${homepageHost}`);
+}
+
+const verifySrc = existsSync(join(ROOT, "tools/verify-deploy.mjs")) ? read("tools/verify-deploy.mjs") : "";
+const entryUrls = [...verifySrc.matchAll(/\["([\w-]+)",\s*"(https:[^"]+)"\]/g)].map((m) => ({ name: m[1], url: m[2] }));
+if (!entryUrls.length) {
+  warn("tools/verify-deploy.mjs: could not extract the URLS table");
+} else {
+  const primary = entryUrls.find((e) => e.name === "primary");
+  if (!primary) bad("tools/verify-deploy.mjs has no primary entry");
+  else if (new URL(primary.url).host !== homepageHost) bad(`verify-deploy primary ${primary.url} != package.json homepage host ${homepageHost}`);
+  else ok(`verify-deploy primary == package.json homepage (${homepageHost})`);
+  let readmeMissing = 0;
+  for (const entry of entryUrls) {
+    let origin = null;
+    try { origin = new URL(entry.url).origin; } catch { /* invalid */ }
+    if (!origin || !README.includes(origin) || !README_ZH.includes(origin)) {
+      bad(`README.md/README.zh-CN.md do not both list entry "${entry.name}": ${entry.url}`);
+      readmeMissing++;
+    }
+  }
+  if (!readmeMissing) ok(`all ${entryUrls.length} verify-deploy entries are listed in README.md and README.zh-CN.md`);
+  const hosts = entryUrls.map((e) => { try { return new URL(e.url).host; } catch { return "?"; } });
+  if (new Set(hosts).size !== hosts.length) warn(`entry points share a host (${hosts.join(", ")}); the "three entries do not share storage" claim may be false`);
+  else ok(`three entry points use three distinct hosts (${hosts.join(", ")})`);
+}
+
+const pubSrc = existsSync(join(ROOT, "tools/github-publish.mjs")) ? read("tools/github-publish.mjs") : "";
+const filesMatch = /const FILES = \[([\s\S]*?)\];/.exec(pubSrc);
+if (!filesMatch) {
+  warn("tools/github-publish.mjs: could not extract the FILES list");
+} else {
+  const publishFiles = [...filesMatch[1].matchAll(/"([^"]+)"/g)].map((m) => m[1]);
+  const missingFiles = publishFiles.filter((f) => !existsSync(join(ROOT, f)));
+  if (missingFiles.length) bad(`tools/github-publish.mjs lists files that do not exist: ${missingFiles.join(", ")}`);
+  else ok(`github-publish FILES: all ${publishFiles.length} listed files exist`);
+  const testFiles = publishFiles.filter((f) => f.startsWith("tests/"));
+  info(`github-publish publishes ${testFiles.length} test file(s): ${testFiles.join(", ")}`);
+  const artifacts = publishFiles.filter((f) => /_remote-/.test(f));
+  if (artifacts.length) warn(`github-publish would upload verify-deploy artifacts: ${artifacts.join(", ")}`);
+  else info("verify-deploy artifacts (tests/_remote-*.html) are NOT in the publish list");
+}
+
 /* ================================================================ 4. offline */
 
 section("4. offline / external-asset checks (index.html)");
@@ -400,6 +467,9 @@ section("6. UI facts (for README fact-check; informational)");
 
 const facts = {
   copyButtons: (TEMPLATE.match(/\bid="copyBtn"/g) || []).length,
+  shareButtons: (TEMPLATE.match(/\bid="shareBtn"/g) || []).length,
+  resetButton: (TEMPLATE.match(/\bid="resetData"/g) || []).length,
+  clearButton: (TEMPLATE.match(/\bid="clearData"/g) || []).length,
   tabs: tabValues.length,
   presets: (TEMPLATE.match(/\bdata-preset="/g) || []).length,
   settingsRows: (TEMPLATE.match(/\bid="set(Lang|Map|Gaps|Promo)"/g) || []).length,
@@ -414,7 +484,8 @@ const facts = {
   version: /var VERSION = "([^"]+)"/.exec(APP) ? /var VERSION = "([^"]+)"/.exec(APP)[1] : "?",
   totalMin: PP.MIN_PAGES, totalMax: PP.MAX_PAGES, totalDefault: PP.DEFAULT_TOTAL
 };
-info(`copy buttons in template: ${facts.copyButtons} (id="copyBtn") — README says one per tab`);
+info(`copy buttons in template: ${facts.copyButtons} (id="copyBtn", shared by the 3 tabs, plus ${facts.shareButtons} share button)`);
+info(`settings data buttons: clearData=${facts.clearButton}, resetData=${facts.resetButton} (Restore defaults)`);
 info(`output tabs: ${facts.tabs}; total-page presets: ${facts.presets} (50/100/200)`);
 info(`settings toggle rows: ${facts.settingsRows}; separator options: ${facts.sepOptions}`);
 info(`locales: ${facts.locales}; external <a> links: ${facts.externalAnchors}`);
