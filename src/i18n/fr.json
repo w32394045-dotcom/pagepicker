@@ -140,5 +140,7 @@
   "a11y.decrease": "Diminuer",
   "a11y.increase": "Augmenter",
   "range.directPlaceholder": "ex. 1-5, 8, 10-13",
-  "parity.directPlaceholder": "ex. odd:1-99; even:2-100"
+  "parity.directPlaceholder": "ex. odd:1-99; even:2-100",
+  "settings.reset": "Rétablir les valeurs par défaut",
+  "settings.resetConfirm": "Rétablir les réglages par défaut et effacer la sélection actuelle ?"
 }

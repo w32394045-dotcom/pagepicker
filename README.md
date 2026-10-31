@@ -55,13 +55,13 @@ so they do not follow you between entries — pick one and stick with it. Prefer
 **Output**
 
 - **Three tabs** — **All** (merged), **Odd** and **Even**, each showing a string ready for the print dialog's
-  *Pages / Page range* field, for example `1-5,8,10,11-13`.
-- **Copy buttons** — one per tab, using the Clipboard API with an automatic `execCommand` fallback; a toast
+  *Pages / Page range* field, for example `1-5,8,10-13`.
+- **Copy button** — one for the active tab, using the Clipboard API with an automatic `execCommand` fallback; a toast
   confirms the copy.
 - **Format options** — merge consecutive pages (on by default), pick a separator (`,` / `, ` / `、` / `/` / space /
   newline), reverse the order (for the back side of a manual duplex job), or split the output into lines of at
   most K pages, so you can feed paper a small batch at a time.
-- **Live output** — the strings update as you pick, and the read-only boxes can be selected by hand.
+- **Live output** — the strings update as you pick, and the read-only box can be selected by hand.
 
 **History and sharing**
 
@@ -73,7 +73,7 @@ so they do not follow you between entries — pick one and stick with it. Prefer
 
 **Settings and interface**
 
-- **Settings** — language (detected automatically, or 简体中文 / 繁體中文 / 日本語 / 한국어 / Deutsch / Français /
+- **Settings** — language (detected automatically, or 简体中文 / 繁體中文 / 日本語 / 한국어 / Français / Deutsch /
   English), show the footer credits and related projects (on by default), flag pages that are not selected, show
   the overview map at the top, clear saved data, restore defaults. Settings are saved in `localStorage`.
 - **Fully local** — a single `index.html`; double-clicking the file (even from `file://`) works. No external

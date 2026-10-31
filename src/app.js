@@ -682,7 +682,7 @@
       "outTabs", "outArea", "outCount", "copyBtn", "shareBtn",
       "optCompact", "optReverse", "optSep", "optBatch",
       "recList", "recEmpty", "recClear", "promo",
-      "setLang", "setMap", "setGaps", "setPromo", "clearData", "verText", "toast"
+      "setLang", "setMap", "setGaps", "setPromo", "clearData", "resetData", "verText", "toast"
     ].forEach(function (id) { els[id] = $(id); });
   }
 
@@ -1026,6 +1026,17 @@
       applyI18n();
       syncAll();
       showToast(t("settings.dataCleared"));
+    });
+
+    on(els.resetData, "click", function () {
+      if (!window.confirm(t("settings.resetConfirm"))) return;
+      state = defaults();
+      resolvedLang = resolveLang();
+      els.totalInput.value = state.total;
+      buildGrid();
+      applyI18n();
+      syncAll();
+      showToast(t("toast.reset"));
     });
   }
 

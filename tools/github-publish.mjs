@@ -30,7 +30,7 @@ const FILES = [
   "src/i18n/en.json", "src/i18n/zh-CN.json", "src/i18n/zh-TW.json", "src/i18n/ja.json",
   "src/i18n/ko.json", "src/i18n/fr.json", "src/i18n/de.json",
   "tools/build.mjs", "tools/check-i18n.mjs", "tools/github-publish.mjs", "tools/verify-deploy.mjs",
-  "tests/core.test.mjs"
+  "tests/core.test.mjs", "tests/dom-smoke.mjs", "tests/static-check.mjs", "tests/html-check.py"
 ];
 
 const req = async (method, path, body) => {

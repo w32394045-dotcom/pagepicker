@@ -140,5 +140,7 @@
   "a11y.decrease": "減少",
   "a11y.increase": "增加",
   "range.directPlaceholder": "例如 1-5, 8, 10-13",
-  "parity.directPlaceholder": "例如 odd:1-99; even:2-100"
+  "parity.directPlaceholder": "例如 odd:1-99; even:2-100",
+  "settings.reset": "恢復預設",
+  "settings.resetConfirm": "恢復預設設定並清空目前選取？"
 }

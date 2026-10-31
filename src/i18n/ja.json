@@ -140,5 +140,7 @@
   "a11y.decrease": "減らす",
   "a11y.increase": "増やす",
   "range.directPlaceholder": "例: 1-5, 8, 10-13",
-  "parity.directPlaceholder": "例: odd:1-99; even:2-100"
+  "parity.directPlaceholder": "例: odd:1-99; even:2-100",
+  "settings.reset": "既定値に戻す",
+  "settings.resetConfirm": "設定を既定値に戻し、現在の選択を消去しますか？"
 }
