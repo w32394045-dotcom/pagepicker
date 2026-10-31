@@ -8,7 +8,7 @@
 
 PagePicker turns "which pages do I actually want to print?" into a page range you can paste straight into the
 print dialog — built for printers without a duplexer. Tell it the document's total page count, pick the pages on
-the overview map (or type a range), and copy the result. One HTML file, no build step, no dependencies, no network
+the overview map (or type a range), and copy the result. One HTML file, nothing to build, no dependencies, no network
 at runtime.
 
 Source: [github.com/w32394045-dotcom/pagepicker](https://github.com/w32394045-dotcom/pagepicker)
@@ -134,7 +134,7 @@ step as in `1-99/2`.
 - **Nothing leaves the browser.** PagePicker makes no network requests, loads no external fonts, scripts or CDN
   files, and has no analytics or telemetry. It never opens your document either — it only knows the page numbers
   you give it.
-- **One file.** `index.html` is self-contained: no build step, no dependencies, and it works from `file://`.
+- **One file.** `index.html` is self-contained: nothing to build, no dependencies, and it works from `file://`.
 - **Where the data lives.** The current selection, settings and history are kept in this browser's `localStorage`;
   a share link keeps the state in the URL hash. Clear it from *Settings → Clear saved data*, or by clearing the
   site's data in your browser.
