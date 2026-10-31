@@ -1,0 +1,2244 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>PagePicker — print page-range builder</title>
+<meta name="description" content="PagePicker builds the page range for the print dialog — odd/even sides for manual duplex, ranges, heat-map overview, copy button. Single offline HTML file, seven languages.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="PagePicker — print page-range builder">
+<meta property="og:description" content="Odd/even page ranges for the print dialog. Runs entirely offline in one HTML file.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%232563eb'/%3E%3Cg fill='%23fff'%3E%3Crect x='13' y='13' width='11' height='11' rx='2.5'/%3E%3Crect x='27' y='13' width='11' height='11' rx='2.5' opacity='.55'/%3E%3Crect x='41' y='13' width='11' height='11' rx='2.5'/%3E%3Crect x='13' y='27' width='11' height='11' rx='2.5' opacity='.55'/%3E%3Crect x='27' y='27' width='11' height='11' rx='2.5'/%3E%3Crect x='41' y='27' width='11' height='11' rx='2.5' opacity='.55'/%3E%3Crect x='13' y='41' width='11' height='11' rx='2.5'/%3E%3Crect x='27' y='41' width='11' height='11' rx='2.5' opacity='.55'/%3E%3Crect x='41' y='41' width='11' height='11' rx='2.5'/%3E%3C/g%3E%3C/svg%3E">
+<style>
+/* PagePicker — light theme, no external assets, no webfonts. */
+:root {
+  --bg: #f5f6f8;
+  --surface: #ffffff;
+  --surface-2: #fbfcfd;
+  --border: #e4e7ec;
+  --border-strong: #d3d8df;
+  --text: #1a1d23;
+  --muted: #667085;
+  --muted-2: #98a2b3;
+  --accent: #2563eb;
+  --accent-soft: #e8efff;
+  --odd: #2563eb;
+  --odd-soft: #dbe6ff;
+  --even: #d97706;
+  --even-soft: #fdecc8;
+  --gap: #e5484d;
+  --gap-soft: #ffe9e9;
+  --ok: #0f8a5f;
+  --radius: 14px;
+  --radius-sm: 9px;
+  --shadow: 0 1px 2px rgba(16, 24, 40, .05), 0 1px 3px rgba(16, 24, 40, .04);
+  --focus: 0 0 0 3px rgba(37, 99, 235, .28);
+  --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+}
+
+* { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 14px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial,
+        "Noto Sans CJK SC", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+button { font: inherit; color: inherit; cursor: pointer; }
+input, select, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: none; box-shadow: var(--focus); border-radius: 6px; }
+
+/* ---------- header ---------- */
+
+.topbar {
+  position: sticky; top: 0; z-index: 30;
+  background: rgba(255, 255, 255, .92);
+  backdrop-filter: saturate(180%) blur(12px);
+  border-bottom: 1px solid var(--border);
+}
+.topbar-in {
+  max-width: 1180px; margin: 0 auto; padding: 10px 20px;
+  display: flex; align-items: center; gap: 14px;
+}
+.brand { display: flex; align-items: center; gap: 10px; margin-right: auto; min-width: 0; }
+.brand-mark {
+  width: 30px; height: 30px; border-radius: 9px; flex: 0 0 auto;
+  background: linear-gradient(140deg, #2563eb, #60a5fa);
+  display: grid; place-items: center; color: #fff;
+}
+.brand-mark svg { width: 17px; height: 17px; }
+.brand-txt { min-width: 0; }
+.brand-name { font-weight: 700; font-size: 15px; letter-spacing: .01em; line-height: 1.2; }
+.brand-sub {
+  font-size: 11.5px; color: var(--muted); line-height: 1.3;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.top-actions { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; }
+.icon-btn {
+  display: inline-grid; place-items: center; width: 34px; height: 34px;
+  border: 1px solid var(--border); background: var(--surface);
+  border-radius: var(--radius-sm); color: var(--muted);
+}
+.icon-btn:hover { color: var(--text); border-color: var(--border-strong); }
+.icon-btn svg { width: 17px; height: 17px; }
+
+.lang-select {
+  height: 34px; padding: 0 26px 0 10px; border: 1px solid var(--border);
+  border-radius: var(--radius-sm); background: var(--surface) url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23667085' stroke-width='2.4'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 9px center;
+  -webkit-appearance: none; appearance: none; font-size: 12.5px; color: var(--text);
+}
+
+/* ---------- layout ---------- */
+
+main { max-width: 1180px; margin: 0 auto; padding: 18px 20px 8px; }
+
+.card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); box-shadow: var(--shadow);
+  padding: 16px 18px; margin-bottom: 16px;
+}
+.card-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+.card h2 { margin: 0; font-size: 14.5px; font-weight: 650; letter-spacing: .005em; }
+.card-desc { margin: 0; color: var(--muted); font-size: 12.5px; }
+.card-head-actions { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+
+.cols { display: grid; grid-template-columns: minmax(0, 1.08fr) minmax(0, .92fr); gap: 16px; align-items: start; }
+.cols > div { min-width: 0; }
+
+/* ---------- total pages + map ---------- */
+
+.total-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.total-label { font-size: 12.5px; color: var(--muted); font-weight: 600; letter-spacing: .01em; }
+
+.stepper {
+  display: inline-flex; align-items: stretch; height: 34px;
+  border: 1px solid var(--border-strong); border-radius: var(--radius-sm);
+  overflow: hidden; background: var(--surface);
+}
+.stepper button {
+  width: 30px; border: 0; background: var(--surface-2); color: var(--muted);
+  font-size: 16px; line-height: 1; display: grid; place-items: center;
+}
+.stepper button:hover { background: var(--accent-soft); color: var(--accent); }
+.stepper input {
+  width: 58px; border: 0; text-align: center; background: var(--surface);
+  font-variant-numeric: tabular-nums; font-weight: 600;
+}
+.stepper input::-webkit-outer-spin-button,
+.stepper input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.stepper input[type=number] { -moz-appearance: textfield; appearance: textfield; }
+.stepper.tiny { height: 30px; }
+.stepper.tiny input { width: 48px; font-size: 13px; }
+.stepper.tiny button { width: 26px; font-size: 15px; }
+.stepper[data-disabled="true"] { opacity: .5; pointer-events: none; }
+
+.quick { display: flex; gap: 6px; flex-wrap: wrap; margin-left: auto; }
+.presets { display: inline-flex; gap: 4px; }
+.presets button {
+  height: 26px; padding: 0 8px; border: 1px solid var(--border); background: var(--surface);
+  border-radius: 7px; font-size: 11.5px; color: var(--muted); font-variant-numeric: tabular-nums;
+}
+.presets button:hover { border-color: var(--accent); color: var(--accent); }
+.btn {
+  height: 32px; padding: 0 12px; border-radius: var(--radius-sm);
+  border: 1px solid var(--border); background: var(--surface); color: var(--text);
+  font-size: 12.5px; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
+}
+.btn:hover { border-color: var(--border-strong); background: var(--surface-2); }
+.btn-primary {
+  background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600;
+}
+.btn-primary:hover { background: #1d4fd8; border-color: #1d4fd8; }
+.btn-quiet { border-color: transparent; background: transparent; color: var(--muted); }
+.btn-quiet:hover { background: var(--surface-2); color: var(--text); }
+.btn-danger { color: #b42318; }
+.btn-danger:hover { background: #fef3f2; border-color: #fecdca; }
+.btn-sm { height: 27px; padding: 0 9px; font-size: 12px; border-radius: 7px; }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+
+.map-wrap { margin-top: 14px; }
+.legend { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; font-size: 12px; color: var(--muted); }
+.legend i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; margin-right: 5px; vertical-align: -1px; }
+.legend .lg-un { background: #e9edf3; box-shadow: inset 0 0 0 1px #dbe1e9; }
+.legend .lg-odd { background: var(--odd); }
+.legend .lg-even { background: var(--even); }
+.legend .lg-gap { background: var(--gap-soft); box-shadow: inset 0 0 0 1px #f7b4b4; }
+.legend-note { margin-left: auto; }
+
+.map {
+  display: flex; flex-wrap: wrap; gap: 3px;
+  padding: 10px; margin-top: 10px;
+  background: var(--surface-2); border: 1px solid var(--border); border-radius: 11px;
+  max-height: 178px; overflow: auto;
+}
+.map button {
+  width: 15px; height: 15px; padding: 0; border: 0; border-radius: 3px;
+  background: #e9edf3; box-shadow: inset 0 0 0 1px #dbe1e9;
+  transition: transform .08s ease, background .12s ease;
+}
+.map button.is-sel.is-odd { background: var(--odd); box-shadow: none; }
+.map button.is-sel.is-even { background: var(--even); box-shadow: none; }
+.map button.is-gap { background: var(--gap-soft); box-shadow: inset 0 0 0 1px #f5b5b5; }
+.map button:hover { transform: scale(1.28); position: relative; z-index: 3; }
+
+.progress-row { display: flex; align-items: center; gap: 10px; margin-top: 10px; font-size: 12.5px; color: var(--muted); }
+.progress { flex: 1 1 auto; height: 6px; border-radius: 99px; background: #edf0f4; overflow: hidden; }
+.progress > i { display: block; height: 100%; width: 0; border-radius: 99px; background: linear-gradient(90deg, var(--odd), #60a5fa); transition: width .18s ease; }
+.coverage { font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+/* ---------- controls ---------- */
+
+.row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.row + .row { margin-top: 10px; }
+.row-label { font-size: 12px; color: var(--muted); min-width: 46px; }
+.row-label.wide { min-width: 0; }
+.hint { font-size: 11.5px; color: var(--muted-2); margin: 8px 0 0; }
+.hint.err { color: #b42318; }
+.hint.ok { color: var(--ok); }
+
+.seg {
+  display: inline-flex; gap: 2px; padding: 3px; background: #f0f2f5;
+  border-radius: 10px; border: 1px solid transparent;
+}
+.seg button {
+  border: 0; background: transparent; border-radius: 7px; padding: 4px 10px;
+  font-size: 12.5px; color: var(--muted);
+}
+.seg button[aria-pressed="true"] {
+  background: var(--surface); color: var(--text); font-weight: 600;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, .09);
+}
+
+.field { display: flex; align-items: center; gap: 8px; }
+.field > label { font-size: 12.5px; color: var(--muted); white-space: nowrap; }
+
+/* dual-handle slider */
+.dual { position: relative; height: 22px; margin: 10px 2px 2px; }
+.dual-track { position: absolute; left: 0; right: 0; top: 50%; height: 6px; margin-top: -3px; border-radius: 99px; background: #edf0f4; overflow: hidden; }
+.dual-fill { position: absolute; top: 0; bottom: 0; background: var(--accent-soft); border-radius: 99px; }
+.dual input[type=range] {
+  position: absolute; left: 0; width: 100%; top: 0; height: 22px; margin: 0;
+  -webkit-appearance: none; appearance: none; background: transparent; pointer-events: none;
+}
+.dual input[type=range]::-webkit-slider-runnable-track { height: 6px; background: transparent; }
+.dual input[type=range]::-moz-range-track { height: 6px; background: transparent; }
+.dual input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 15px; height: 15px; border-radius: 50%;
+  background: #fff; border: 2px solid var(--accent); box-shadow: 0 1px 3px rgba(16, 24, 40, .22);
+  pointer-events: auto; cursor: grab; margin-top: -4.5px;
+}
+.dual input[type=range]::-moz-range-thumb {
+  width: 13px; height: 13px; border-radius: 50%; background: #fff;
+  border: 2px solid var(--accent); box-shadow: 0 1px 3px rgba(16, 24, 40, .22);
+  pointer-events: auto; cursor: grab;
+}
+.dual.mini { height: 18px; margin-top: 6px; }
+.dual.mini input[type=range] { height: 18px; }
+.dual.mini input[type=range]::-webkit-slider-thumb { width: 13px; height: 13px; margin-top: -3.5px; }
+
+.limit-box {
+  border: 1px solid var(--border); border-radius: 11px; padding: 9px 11px;
+  background: var(--surface-2);
+}
+.limit-box + .limit-box { margin-top: 8px; }
+.limit-box.is-off .stepper,
+.limit-box.is-off .dual { opacity: .5; pointer-events: none; }
+.limit-box.is-off { background: #fff; }
+.limit-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.limit-head label { font-size: 12.5px; color: var(--muted); display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+.check { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--muted); cursor: pointer; user-select: none; }
+.check input { width: 15px; height: 15px; accent-color: var(--accent); cursor: pointer; }
+
+.direct-box { margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--border); }
+.direct-title { font-size: 12px; color: var(--muted); font-weight: 600; margin-bottom: 6px; }
+.direct-row { display: flex; gap: 8px; align-items: center; }
+.text-input {
+  flex: 1 1 auto; min-width: 0; height: 34px; padding: 0 11px;
+  border: 1px solid var(--border-strong); border-radius: var(--radius-sm); background: var(--surface);
+  font-family: var(--mono); font-size: 13px;
+}
+.text-input::placeholder { color: var(--muted-2); font-family: var(--mono); }
+.text-input.is-bad { border-color: #f04438; box-shadow: 0 0 0 3px rgba(240, 68, 56, .12); }
+
+.chips {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(40px, 1fr)); gap: 5px;
+  max-height: 252px; overflow: auto; padding: 2px;
+}
+.chips button {
+  height: 30px; border: 1px solid var(--border); background: var(--surface);
+  border-radius: 7px; font-size: 12px; color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+.chips button:hover { border-color: var(--accent); color: var(--accent); }
+.chips button.is-sel.is-odd { background: var(--odd-soft); border-color: #b9cdfb; color: #1e40af; font-weight: 650; }
+.chips button.is-sel.is-even { background: var(--even-soft); border-color: #f3cf92; color: #92400e; font-weight: 650; }
+.chips button.is-gap { background: var(--gap-soft); border-color: #f5c2c2; }
+
+/* ---------- output ---------- */
+
+.tabs { display: inline-flex; gap: 2px; padding: 3px; background: #f0f2f5; border-radius: 10px; }
+.tabs button {
+  border: 0; background: transparent; border-radius: 7px; padding: 4px 12px;
+  font-size: 12.5px; color: var(--muted); font-weight: 500;
+}
+.tabs button[aria-selected="true"] { background: var(--surface); color: var(--text); font-weight: 650; box-shadow: 0 1px 2px rgba(16, 24, 40, .09); }
+
+.output-panel { margin-top: 10px; }
+.output-area-row { display: flex; gap: 8px; align-items: flex-start; }
+.output-area {
+  flex: 1 1 auto; min-width: 0; width: 100%; min-height: 64px; resize: vertical;
+  padding: 9px 11px; border: 1px solid var(--border-strong); border-radius: 11px;
+  background: var(--surface-2); font-family: var(--mono); font-size: 14px; line-height: 1.6;
+  color: var(--text); word-break: break-all;
+}
+.output-area::placeholder { color: var(--muted-2); font-family: inherit; }
+.output-meta { display: flex; align-items: center; gap: 8px; margin-top: 8px; font-size: 12px; color: var(--muted); flex-wrap: wrap; }
+.output-meta .spacer { margin-left: auto; }
+
+.opts { margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--border); display: grid; gap: 9px; }
+.opts-title { font-size: 12px; font-weight: 600; color: var(--muted); }
+.opt-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 12.5px; color: var(--muted); }
+.select {
+  height: 30px; padding: 0 26px 0 9px; border: 1px solid var(--border-strong);
+  border-radius: 8px; background: var(--surface) url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23667085' stroke-width='2.4'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 8px center;
+  -webkit-appearance: none; appearance: none; font-size: 12.5px; color: var(--text);
+}
+.batch-input {
+  width: 62px; height: 30px; text-align: center; border: 1px solid var(--border-strong);
+  border-radius: 8px; font-variant-numeric: tabular-nums;
+}
+
+/* ---------- records ---------- */
+
+.records { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; max-height: 330px; overflow: auto; }
+.records li {
+  border: 1px solid var(--border); border-radius: 11px; padding: 9px 11px;
+  background: var(--surface-2);
+}
+.rec-top { display: flex; align-items: center; gap: 8px; font-size: 11.5px; color: var(--muted); }
+.rec-time { font-variant-numeric: tabular-nums; }
+.rec-count { padding: 1px 7px; border-radius: 99px; background: #eef2f7; color: #475467; font-weight: 600; }
+.rec-actions { margin-left: auto; display: flex; gap: 4px; }
+.rec-text {
+  margin-top: 5px; font-family: var(--mono); font-size: 12.5px; color: var(--text);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.rec-text.clip { color: var(--muted); }
+.records-empty { font-size: 12.5px; color: var(--muted-2); padding: 6px 2px 2px; }
+.rec-note { margin: 10px 0 0; font-size: 11.5px; color: var(--muted-2); }
+
+/* ---------- footer / promo ---------- */
+
+footer { max-width: 1180px; margin: 0 auto; padding: 8px 20px 30px; }
+.promo {
+  border-top: 1px solid var(--border); padding-top: 16px; margin-top: 4px;
+}
+.promo-base { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 12px; color: var(--muted); }
+.promo-base .dot { color: var(--muted-2); }
+.promo-base strong { color: var(--text); font-weight: 600; }
+.promo-projects { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px; margin-top: 12px; }
+.ad {
+  display: flex; gap: 10px; align-items: flex-start; padding: 11px 12px;
+  border: 1px solid var(--border); border-radius: 12px; background: var(--surface);
+  box-shadow: var(--shadow);
+}
+.ad-badge {
+  width: 32px; height: 32px; border-radius: 9px; flex: 0 0 auto; display: grid; place-items: center;
+  font-size: 12px; font-weight: 700; color: #fff; letter-spacing: -.02em;
+}
+.ad-badge.img { background: linear-gradient(140deg, #0f8a5f, #4ade80); }
+.ad-badge.md { background: linear-gradient(140deg, #1e3a8a, #3b82f6); }
+.ad-body { min-width: 0; }
+.ad-name { font-size: 13px; font-weight: 650; }
+.ad-name a { color: var(--text); }
+.ad-desc { margin: 3px 0 5px; font-size: 11.5px; line-height: 1.5; color: var(--muted); }
+.ad-cta { font-size: 11.5px; font-weight: 600; }
+.promo[hidden] { display: none; }
+
+/* ---------- settings dialog / toast ---------- */
+
+dialog {
+  border: 0; border-radius: 16px; padding: 0; width: min(460px, calc(100vw - 32px));
+  background: var(--surface); color: var(--text);
+  box-shadow: 0 20px 50px rgba(16, 24, 40, .22);
+}
+dialog::backdrop { background: rgba(16, 24, 40, .38); backdrop-filter: blur(2px); }
+.dlg-head { display: flex; align-items: center; gap: 10px; padding: 15px 18px; border-bottom: 1px solid var(--border); }
+.dlg-head h2 { margin: 0; font-size: 15px; }
+.dlg-body { padding: 14px 18px; max-height: min(70vh, 560px); overflow: auto; }
+.dlg-foot { padding: 12px 18px; border-top: 1px solid var(--border); display: flex; gap: 8px; justify-content: flex-end; }
+.set-group + .set-group { margin-top: 16px; }
+.set-title { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted-2); margin-bottom: 8px; }
+.set-row { display: flex; align-items: center; gap: 10px; padding: 6px 0; }
+.set-row label { flex: 1 1 auto; font-size: 13px; cursor: pointer; }
+.set-row select { min-width: 150px; }
+.set-hint { margin: 4px 0 0; font-size: 11.5px; color: var(--muted-2); line-height: 1.5; }
+.about-line { font-size: 12.5px; color: var(--muted); display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+
+#toast {
+  position: fixed; left: 50%; bottom: 26px; transform: translate(-50%, 14px);
+  background: #1a1d23; color: #fff; font-size: 12.5px; padding: 9px 16px;
+  border-radius: 99px; box-shadow: 0 8px 24px rgba(16, 24, 40, .28);
+  opacity: 0; pointer-events: none; transition: opacity .18s ease, transform .18s ease;
+  z-index: 90; max-width: calc(100vw - 40px); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+#toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+@media (max-width: 900px) {
+  .cols { grid-template-columns: minmax(0, 1fr); }
+  .brand-sub { display: none; }
+  main { padding: 14px 12px 4px; }
+  .topbar-in { padding: 8px 12px; }
+  footer { padding: 8px 12px 26px; }
+}
+@media (max-width: 560px) {
+  .quick { margin-left: 0; width: 100%; }
+  .card { padding: 13px 13px; }
+  .brand-name { font-size: 14px; }
+}
+
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-in">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+      </div>
+      <div class="brand-txt">
+        <div class="brand-name" data-i18n="app.name">PagePicker</div>
+        <div class="brand-sub" data-i18n="app.tagline">Print-dialog page ranges, built for printers without a duplexer</div>
+      </div>
+    </div>
+    <div class="top-actions">
+      <label class="sr-only" for="langSelect" data-i18n="header.language">Language</label>
+      <select id="langSelect" class="lang-select"></select>
+      <button id="settingsBtn" class="icon-btn" type="button" data-i18n-title="header.settings" data-i18n-aria="header.settings" title="Settings" aria-label="Settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.1"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.03 1.56V21a2 2 0 1 1-4 0v-.09A1.7 1.7 0 0 0 8.94 19.3a1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.7 15a1.7 1.7 0 0 0-1.56-1.03H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.7 8.94a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.7a1.7 1.7 0 0 0 1.03-1.56V3a2 2 0 1 1 4 0v.09A1.7 1.7 0 0 0 15.06 4.7a1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.7 1.7 0 0 0 19.3 9v.09a1.7 1.7 0 0 0 1.56 1.03H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.51.88z"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="card" id="mapCard">
+    <div class="total-row">
+      <span class="total-label" data-i18n="total.label">Total pages</span>
+      <div class="stepper" id="totalStepper">
+        <button type="button" id="totalMinus" data-i18n-aria="total.decrease" aria-label="One page fewer">−</button>
+        <input id="totalInput" type="number" min="1" max="2000" step="1" value="100" inputmode="numeric" data-i18n-aria="total.label" aria-label="Total pages">
+        <button type="button" id="totalPlus" data-i18n-aria="total.increase" aria-label="One page more">+</button>
+      </div>
+      <div class="presets" id="presets" role="group">
+        <button type="button" data-preset="50">50</button>
+        <button type="button" data-preset="100">100</button>
+        <button type="button" data-preset="200">200</button>
+      </div>
+      <div class="quick">
+        <button type="button" class="btn btn-sm" id="qAll" data-i18n="quick.selectAll">All</button>
+        <button type="button" class="btn btn-sm" id="qNone" data-i18n="quick.clear">None</button>
+        <button type="button" class="btn btn-sm" id="qInvert" data-i18n="quick.invert">Invert</button>
+        <button type="button" class="btn btn-sm" id="qOdd" data-i18n="quick.odds">Odd only</button>
+        <button type="button" class="btn btn-sm" id="qEven" data-i18n="quick.evens">Even only</button>
+      </div>
+    </div>
+    <div class="map-wrap" id="mapWrap">
+      <div class="legend">
+        <span><i class="lg-un"></i><span data-i18n="heatmap.legendUnselected">Not printed</span></span>
+        <span><i class="lg-odd"></i><span data-i18n="heatmap.legendOdd">Odd side</span></span>
+        <span><i class="lg-even"></i><span data-i18n="heatmap.legendEven">Even side</span></span>
+        <span class="legend-note" data-i18n="heatmap.clickHint">Click a cell to toggle that page</span>
+      </div>
+      <div class="map" id="map" role="group" data-i18n-aria="a11y.map" aria-label="Page overview map"></div>
+      <div class="progress-row">
+        <div class="progress"><i id="mapBar"></i></div>
+        <span class="coverage" id="mapCoverage"></span>
+      </div>
+    </div>
+  </section>
+
+  <div class="cols">
+    <div>
+
+      <section class="card">
+        <div class="card-head">
+          <h2 data-i18n="range.title">A run of pages</h2>
+          <p class="card-desc" data-i18n="range.desc">Pick a span, then apply it.</p>
+        </div>
+        <div class="row">
+          <span class="row-label" data-i18n="action.label">When applying</span>
+          <div class="seg" id="actionSeg" role="group">
+            <button type="button" data-action="add" aria-pressed="true" data-i18n="action.add">Add</button>
+            <button type="button" data-action="replace" aria-pressed="false" data-i18n="action.replace">Replace</button>
+            <button type="button" data-action="remove" aria-pressed="false" data-i18n="action.remove">Remove</button>
+          </div>
+        </div>
+        <div class="row" style="margin-top:12px">
+          <div class="field">
+            <label for="rangeFrom" data-i18n="range.from">From</label>
+            <div class="stepper tiny" id="fromStepper">
+              <button type="button" id="fromMinus" data-i18n-aria="a11y.decrease" aria-label="Decrease">−</button>
+              <input id="rangeFrom" type="number" min="1" max="2000" step="1" value="1" inputmode="numeric" aria-label="From">
+              <button type="button" id="fromPlus" data-i18n-aria="a11y.increase" aria-label="Increase">+</button>
+            </div>
+          </div>
+          <div class="field">
+            <label for="rangeTo" data-i18n="range.to">To</label>
+            <div class="stepper tiny" id="toStepper">
+              <button type="button" id="toMinus" data-i18n-aria="a11y.decrease" aria-label="Decrease">−</button>
+              <input id="rangeTo" type="number" min="1" max="2000" step="1" value="100" inputmode="numeric" aria-label="To">
+              <button type="button" id="toPlus" data-i18n-aria="a11y.increase" aria-label="Increase">+</button>
+            </div>
+          </div>
+          <div class="field">
+            <span class="row-label" data-i18n="range.step">Step</span>
+            <div class="seg" id="stepSeg" role="group">
+              <button type="button" data-step="1" aria-pressed="true" data-i18n="range.step1">Every page</button>
+              <button type="button" data-step="2" aria-pressed="false" data-i18n="range.step2">Every second page</button>
+            </div>
+          </div>
+        </div>
+        <div class="dual" id="rangeDual">
+          <div class="dual-track"><div class="dual-fill" id="rangeFill"></div></div>
+          <input type="range" class="lo" id="rangeLo" min="1" max="2000" value="1" aria-label="Range start">
+          <input type="range" class="hi" id="rangeHi" min="1" max="2000" value="100" aria-label="Range end">
+        </div>
+        <p class="hint" data-i18n="range.sliderHint">Drag either handle to move the span</p>
+        <div class="row" style="margin-top:12px">
+          <button type="button" class="btn btn-primary" id="rangeApply" data-i18n="common.apply">Apply</button>
+        </div>
+        <div class="direct-box">
+          <div class="direct-title" data-i18n="range.direct">Or type it</div>
+          <div class="direct-row">
+            <input id="rangeDirect" class="text-input" type="text" autocomplete="off" spellcheck="false" placeholder="e.g. 1-5, 8, 10-13" data-i18n-placeholder="range.directPlaceholder">
+            <button type="button" class="btn" id="rangeDirectApply" data-i18n="common.apply">Apply</button>
+          </div>
+          <p class="hint" data-i18n="range.directHint">Commas, spaces or 、 separate items — 1-5, 8, 10-13, odd, even, 1-99/2</p>
+          <p class="hint err" id="rangeDirectErr" hidden></p>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-head">
+          <h2 data-i18n="parity.title">Odd and even</h2>
+          <p class="card-desc" data-i18n="parity.desc">Print one side, flip the stack, print the other.</p>
+        </div>
+        <div class="row">
+          <span class="row-label" data-i18n="parity.mode">Keep</span>
+          <div class="seg" id="paritySeg" role="group">
+            <button type="button" data-mode="all" aria-pressed="true" data-i18n="parity.modeAll">Both sides</button>
+            <button type="button" data-mode="odd" aria-pressed="false" data-i18n="parity.modeOdd">Odd only</button>
+            <button type="button" data-mode="even" aria-pressed="false" data-i18n="parity.modeEven">Even only</button>
+          </div>
+        </div>
+        <div class="limit-box" style="margin-top:12px" id="oddBox">
+          <div class="limit-head">
+            <label class="check" for="oddOn"><input type="checkbox" id="oddOn"><span data-i18n="parity.oddLimit">Odd pages from … to …</span></label>
+            <span class="row-label" style="margin-left:auto" data-i18n="range.from">From</span>
+            <div class="stepper tiny" id="oddFromStepper">
+              <button type="button" id="oddFromMinus" data-i18n-aria="a11y.decrease" aria-label="Decrease">−</button>
+              <input id="oddFrom" type="number" min="1" max="2000" step="2" value="1" inputmode="numeric" aria-label="Odd pages from">
+              <button type="button" id="oddFromPlus" data-i18n-aria="a11y.increase" aria-label="Increase">+</button>
+            </div>
+            <span class="row-label" data-i18n="range.to">To</span>
+            <div class="stepper tiny" id="oddToStepper">
+              <button type="button" id="oddToMinus" data-i18n-aria="a11y.decrease" aria-label="Decrease">−</button>
+              <input id="oddTo" type="number" min="1" max="2000" step="2" value="99" inputmode="numeric" aria-label="Odd pages to">
+              <button type="button" id="oddToPlus" data-i18n-aria="a11y.increase" aria-label="Increase">+</button>
+            </div>
+          </div>
+          <div class="dual mini" id="oddDual">
+            <div class="dual-track"><div class="dual-fill" id="oddFill"></div></div>
+            <input type="range" class="lo" id="oddLo" min="1" max="2000" value="1" aria-label="Odd range start">
+            <input type="range" class="hi" id="oddHi" min="1" max="2000" value="99" aria-label="Odd range end">
+          </div>
+        </div>
+        <div class="limit-box" id="evenBox">
+          <div class="limit-head">
+            <label class="check" for="evenOn"><input type="checkbox" id="evenOn"><span data-i18n="parity.evenLimit">Even pages from … to …</span></label>
+            <span class="row-label" style="margin-left:auto" data-i18n="range.from">From</span>
+            <div class="stepper tiny" id="evenFromStepper">
+              <button type="button" id="evenFromMinus" data-i18n-aria="a11y.decrease" aria-label="Decrease">−</button>
+              <input id="evenFrom" type="number" min="2" max="2000" step="2" value="2" inputmode="numeric" aria-label="Even pages from">
+              <button type="button" id="evenFromPlus" data-i18n-aria="a11y.increase" aria-label="Increase">+</button>
+            </div>
+            <span class="row-label" data-i18n="range.to">To</span>
+            <div class="stepper tiny" id="evenToStepper">
+              <button type="button" id="evenToMinus" data-i18n-aria="a11y.decrease" aria-label="Decrease">−</button>
+              <input id="evenTo" type="number" min="2" max="2000" step="2" value="100" inputmode="numeric" aria-label="Even pages to">
+              <button type="button" id="evenToPlus" data-i18n-aria="a11y.increase" aria-label="Increase">+</button>
+            </div>
+          </div>
+          <div class="dual mini" id="evenDual">
+            <div class="dual-track"><div class="dual-fill" id="evenFill"></div></div>
+            <input type="range" class="lo" id="evenLo" min="1" max="2000" value="2" aria-label="Even range start">
+            <input type="range" class="hi" id="evenHi" min="1" max="2000" value="100" aria-label="Even range end">
+          </div>
+        </div>
+        <div class="row" style="margin-top:12px">
+          <button type="button" class="btn btn-primary" id="parityApply" data-i18n="common.apply">Apply</button>
+        </div>
+        <div class="direct-box">
+          <div class="direct-title" data-i18n="parity.direct">Or type it</div>
+          <div class="direct-row">
+            <input id="parityDirect" class="text-input" type="text" autocomplete="off" spellcheck="false" placeholder="e.g. odd:1-99; even:2-100" data-i18n-placeholder="parity.directPlaceholder">
+            <button type="button" class="btn" id="parityDirectApply" data-i18n="common.apply">Apply</button>
+          </div>
+          <p class="hint" data-i18n="parity.directHint">odd:1-99; even:2-100 — the same two sides as the controls above</p>
+          <p class="hint err" id="parityDirectErr" hidden></p>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-head">
+          <h2 data-i18n="manual.title">Pick them one by one</h2>
+          <p class="card-desc" data-i18n="manual.hint">Click to toggle · Shift-click to fill a span</p>
+          <div class="card-head-actions"><span class="coverage" id="manualSelected"></span></div>
+        </div>
+        <div class="chips" id="chips" role="group" data-i18n-aria="a11y.grid" aria-label="Page grid"></div>
+      </section>
+
+    </div>
+    <div>
+
+      <section class="card">
+        <div class="card-head">
+          <h2 data-i18n="output.title">For the print dialog</h2>
+          <p class="card-desc" data-i18n="output.desc">Paste into “Pages / Page range”.</p>
+        </div>
+        <div class="tabs" role="tablist" id="outTabs">
+          <button type="button" role="tab" id="tabAll" data-tab="all" aria-selected="true" data-i18n="output.tabAll">All</button>
+          <button type="button" role="tab" id="tabOdd" data-tab="odd" aria-selected="false" data-i18n="output.tabOdd">Odd</button>
+          <button type="button" role="tab" id="tabEven" data-tab="even" aria-selected="false" data-i18n="output.tabEven">Even</button>
+        </div>
+        <div class="output-panel" role="tabpanel">
+          <div class="output-area-row">
+            <textarea id="outArea" class="output-area" readonly rows="3" spellcheck="false" placeholder="Nothing selected yet" data-i18n-placeholder="output.empty" data-i18n-aria="a11y.output" aria-label="Page range for the print dialog"></textarea>
+          </div>
+          <div class="output-meta">
+            <span id="outCount"></span>
+            <span class="spacer"></span>
+            <button type="button" class="btn btn-sm" id="shareBtn" data-i18n="output.share">Copy share link</button>
+            <button type="button" class="btn btn-sm btn-primary" id="copyBtn" data-i18n="output.copy">Copy</button>
+          </div>
+        </div>
+        <div class="opts">
+          <div class="opts-title" data-i18n="output.options">Format</div>
+          <div class="opt-row">
+            <label class="check"><input type="checkbox" id="optCompact" checked><span data-i18n="output.compact">Merge consecutive pages</span></label>
+            <label class="check"><input type="checkbox" id="optReverse"><span data-i18n="output.reverse">Reverse order</span></label>
+          </div>
+          <div class="opt-row">
+            <label for="optSep" data-i18n="output.separator">Separator</label>
+            <select id="optSep" class="select"></select>
+            <label for="optBatch" data-i18n="output.batch">Split into batches of</label>
+            <input id="optBatch" class="batch-input" type="number" min="0" max="2000" step="1" value="0" inputmode="numeric" data-i18n-title="output.batchOff" title="no batching">
+            <span data-i18n="common.pages">pages</span>
+          </div>
+        </div>
+        <p class="hint" style="margin-top:10px" data-i18n="output.shareHint">The link carries the page count and the selection.</p>
+      </section>
+
+      <section class="card">
+        <div class="card-head">
+          <h2 data-i18n="records.title">History</h2>
+          <p class="card-desc" data-i18n="records.desc">Everything you copy is kept here.</p>
+          <div class="card-head-actions">
+            <button type="button" class="btn btn-sm btn-quiet btn-danger" id="recClear" data-i18n="records.clear">Clear all</button>
+          </div>
+        </div>
+        <ul class="records" id="recList"></ul>
+        <p class="records-empty" id="recEmpty" data-i18n="records.empty">Nothing yet. Copy an output and it will show up here.</p>
+        <p class="rec-note" data-i18n="records.note">Kept in this browser only — never uploaded.</p>
+      </section>
+
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div class="promo" id="promo">
+    <div class="promo-base">
+      <span data-i18n="footer.local">Runs entirely on this device — nothing is sent anywhere.</span>
+      <span class="dot">·</span>
+      <a href="https://github.com/w32394045-dotcom/pagepicker" target="_blank" rel="noopener noreferrer">github.com/w32394045-dotcom/pagepicker</a>
+      <span class="dot">·</span>
+      <strong data-i18n="footer.license">Open source · MIT</strong>
+    </div>
+    <div class="promo-projects">
+      <div class="ad">
+        <div class="ad-badge img" aria-hidden="true">img</div>
+        <div class="ad-body">
+          <div class="ad-name"><a href="https://imgprint.xszx.cc.cd/" target="_blank" rel="noopener noreferrer" data-i18n="ad.imgprint.name">imgprint</a></div>
+          <p class="ad-desc" data-i18n="ad.imgprint.desc">Print several photos per sheet: paper size, margins, 1–4 images a page, DPI and colour-space warnings.</p>
+          <a class="ad-cta" href="https://github.com/w32394045-dotcom/imgprint" target="_blank" rel="noopener noreferrer" data-i18n="ad.imgprint.cta">Open imgprint</a>
+        </div>
+      </div>
+      <div class="ad">
+        <div class="ad-badge md" aria-hidden="true">md</div>
+        <div class="ad-body">
+          <div class="ad-name"><a href="https://md2pdf.xszx.cc.cd/" target="_blank" rel="noopener noreferrer" data-i18n="ad.md2pdf.name">md2pdf</a></div>
+          <p class="ad-desc" data-i18n="ad.md2pdf.desc">Turn Markdown into a vector-text PDF: LaTeX maths, chemistry, inline SVG, print-ready page layout.</p>
+          <a class="ad-cta" href="https://github.com/w32394045-dotcom/md2pdf" target="_blank" rel="noopener noreferrer" data-i18n="ad.md2pdf.cta">Open md2pdf</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<dialog id="settingsDlg">
+  <div class="dlg-head">
+    <h2 data-i18n="settings.title">Settings</h2>
+    <button type="button" class="icon-btn" id="settingsClose" style="margin-left:auto" data-i18n-aria="common.close" aria-label="Close">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+  </div>
+  <div class="dlg-body">
+    <div class="set-group">
+      <div class="set-title" data-i18n="settings.language">Language</div>
+      <div class="set-row">
+        <label for="setLang" data-i18n="settings.language">Language</label>
+        <select id="setLang" class="select"></select>
+      </div>
+      <p class="set-hint" data-i18n="settings.languageHint">Detected from the browser on first visit.</p>
+    </div>
+    <div class="set-group">
+      <div class="set-title" data-i18n="settings.interface">Interface</div>
+      <div class="set-row"><label for="setMap" data-i18n="settings.showMap">Show the overview map at the top</label><input type="checkbox" id="setMap" checked></div>
+      <div class="set-row"><label for="setGaps" data-i18n="settings.highlightGaps">Flag pages that are not selected</label><input type="checkbox" id="setGaps"></div>
+      <div class="set-row"><label for="setPromo" data-i18n="settings.showPromo">Show the footer credits and related projects</label><input type="checkbox" id="setPromo" checked></div>
+    </div>
+    <div class="set-group">
+      <div class="set-title" data-i18n="settings.data">Data</div>
+      <div class="set-row"><button type="button" class="btn btn-danger" id="clearData" data-i18n="settings.clearData">Clear saved data</button></div>
+    </div>
+    <div class="set-group">
+      <div class="set-title" data-i18n="settings.about">About</div>
+      <div class="about-line">
+        <span data-i18n="app.name">PagePicker</span><span>·</span><span id="verText"></span><span>·</span><span data-i18n="settings.license">Open source · MIT</span>
+      </div>
+      <p class="set-hint" data-i18n="settings.offline">Runs entirely on this device. No network requests.</p>
+      <p class="set-hint" data-i18n="settings.shortcutHint">Shift-click a page fills the span · Esc closes dialogs</p>
+    </div>
+  </div>
+  <div class="dlg-foot">
+    <button type="button" class="btn" id="settingsDone" data-i18n="common.close">Close</button>
+  </div>
+</dialog>
+
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* PagePicker — pure page-range logic.
+   No DOM, no network. Usable from the browser (global `PP`) and from Node (module.exports). */
+var PP = (function () {
+  "use strict";
+
+  var MIN_PAGES = 1;
+  var MAX_PAGES = 2000;
+  var DEFAULT_TOTAL = 100;
+
+  /* ---------- small helpers ---------- */
+
+  function isInt(v) {
+    return typeof v === "number" && isFinite(v) && Math.floor(v) === v;
+  }
+
+  function clampInt(v, min, max) {
+    v = Math.round(Number(v));
+    if (!isFinite(v)) return min;
+    return v < min ? min : v > max ? max : v;
+  }
+
+  function normalizeTotal(v) {
+    var n = Math.round(Number(v));
+    if (!isFinite(n)) return DEFAULT_TOTAL;
+    if (n < MIN_PAGES) n = MIN_PAGES;
+    if (n > MAX_PAGES) n = MAX_PAGES;
+    return n;
+  }
+
+  function uniqSorted(arr) {
+    var seen = Object.create(null), out = [];
+    for (var i = 0; i < arr.length; i++) {
+      var n = arr[i];
+      if (!isInt(n) || seen[n]) continue;
+      seen[n] = 1;
+      out.push(n);
+    }
+    out.sort(function (a, b) { return a - b; });
+    return out;
+  }
+
+  function sanitize(pages, total) {
+    total = normalizeTotal(total);
+    var out = [];
+    for (var i = 0; i < pages.length; i++) {
+      var n = Math.round(Number(pages[i]));
+      if (isFinite(n) && n >= 1 && n <= total) out.push(n);
+    }
+    return uniqSorted(out);
+  }
+
+  function range(start, end, step) {
+    step = Math.max(1, Math.round(Number(step) || 1));
+    var a = Number(start), b = Number(end);
+    if (a > b) { var t = a; a = b; b = t; }
+    var out = [];
+    for (var n = a; n <= b; n += step) out.push(n);
+    return out;
+  }
+
+  /* Pages in [from..to] whose parity matches. parity: "all" | "odd" | "even". */
+  function parityRange(from, to, parity) {
+    var a = Math.round(Number(from)), b = Math.round(Number(to));
+    if (a > b) { var t = a; a = b; b = t; }
+    var out = [];
+    for (var n = a; n <= b; n++) {
+      if (parity === "odd" && n % 2 === 0) continue;
+      if (parity === "even" && n % 2 !== 0) continue;
+      out.push(n);
+    }
+    return out;
+  }
+
+  function splitParity(pages) {
+    var odd = [], even = [];
+    for (var i = 0; i < pages.length; i++) (pages[i] % 2 ? odd : even).push(pages[i]);
+    return { odd: odd, even: even };
+  }
+
+  function stats(pages) {
+    var odd = 0;
+    for (var i = 0; i < pages.length; i++) if (pages[i] % 2) odd++;
+    return { count: pages.length, odd: odd, even: pages.length - odd, min: pages.length ? pages[0] : 0, max: pages.length ? pages[pages.length - 1] : 0 };
+  }
+
+  function coverage(selected, total) {
+    total = normalizeTotal(total);
+    var pct = total ? Math.round((selected.length / total) * 100) : 0;
+    return { count: selected.length, total: total, pct: pct };
+  }
+
+  /* ---------- direct-input parsing ---------- */
+
+  var SEPARATORS = /[\s,，;；、]+/;
+  var ERR = {
+    INVALID: "invalid",
+    EMPTY: "empty",
+    OUT_OF_RANGE: "outOfRange",
+    RANGE_ORDER: "rangeOrder"
+  };
+
+  function parsePageToken(token, total, out, errors) {
+    var t = String(token).trim();
+    if (!t) return;
+    var m;
+
+    /* keywords */
+    if (/^(all|全部|所有)$/i.test(t)) { pushAll(parityRange(1, total, "all"), out); return; }
+    if (/^(odd|奇数|奇數)$/i.test(t)) { pushAll(parityRange(1, total, "odd"), out); return; }
+    if (/^(even|偶数|偶數)$/i.test(t)) { pushAll(parityRange(1, total, "even"), out); return; }
+
+    /* a-b/step  (1-99/2) */
+    m = /^(\d*)\s*[-–—~]\s*(\d*)\s*(?:\/\s*(\d+))?$/.exec(t);
+    if (m) {
+      var from = m[1] === "" ? 1 : parseInt(m[1], 10);
+      var to = m[2] === "" ? total : parseInt(m[2], 10);
+      var step = m[3] ? parseInt(m[3], 10) : 1;
+      if (!step || step < 1) { errors.push({ token: token, code: ERR.INVALID }); return; }
+      if (from < 1 || to > total) { errors.push({ token: token, code: ERR.OUT_OF_RANGE }); return; }
+      if (from > to) { errors.push({ token: token, code: ERR.INVALID }); return; }
+      pushAll(range(from, to, step), out);
+      return;
+    }
+
+    /* page/step  (10/2) — a lone page with a step is meaningless, reject */
+    /* single number */
+    m = /^(\d+)$/.exec(t);
+    if (m) {
+      var n = parseInt(m[1], 10);
+      if (n < 1 || n > total) { errors.push({ token: token, code: ERR.OUT_OF_RANGE }); return; }
+      out.push(n);
+      return;
+    }
+
+    /* "odd:1-99" style inside the generic box */
+    m = /^(odd|even|奇数|偶数|奇數|偶數)\s*[:：]\s*(.+)$/i.exec(t);
+    if (m) {
+      var side = /^even|^偶/i.test(m[1]) ? "even" : "odd";
+      var sub = parseSingleSpan(m[2], total, errors, token);
+      if (sub) pushAll(parityRange(sub.a, sub.b, side), out);
+      return;
+    }
+
+    errors.push({ token: token, code: ERR.INVALID });
+  }
+
+  function pushAll(list, out) {
+    for (var i = 0; i < list.length; i++) out.push(list[i]);
+  }
+
+  /* a span like "1-99", "12", "1-99/2" -> {a,b,step}. null on error. */
+  function parseSingleSpan(text, total, errors, wholeToken) {
+    var t = String(text).trim();
+    var m = /^(\d*)\s*[-–—~]\s*(\d*)\s*(?:\/\s*(\d+))?$/.exec(t);
+    if (m) {
+      var a = m[1] === "" ? 1 : parseInt(m[1], 10);
+      var b = m[2] === "" ? total : parseInt(m[2], 10);
+      var step = m[3] ? parseInt(m[3], 10) : 1;
+      if (a < 1 || b > total || a > b || step < 1) {
+        errors.push({ token: wholeToken || text, code: ERR.OUT_OF_RANGE });
+        return null;
+      }
+      return { a: a, b: b, step: step };
+    }
+    m = /^(\d+)$/.exec(t);
+    if (m) {
+      var n = parseInt(m[1], 10);
+      if (n < 1 || n > total) { errors.push({ token: wholeToken || text, code: ERR.OUT_OF_RANGE }); return null; }
+      return { a: n, b: n, step: 1 };
+    }
+    errors.push({ token: wholeToken || text, code: ERR.INVALID });
+    return null;
+  }
+
+  /* Generic box: "1-5, 8, 10-13", "odd", "1-99/2" */
+  function parsePages(text, total) {
+    total = normalizeTotal(total);
+    var errors = [];
+    var pages = [];
+    var src = String(text == null ? "" : text).trim();
+    if (!src) return { pages: [], errors: [{ token: "", code: ERR.EMPTY }] };
+    var tokens = src.split(SEPARATORS);
+    for (var i = 0; i < tokens.length; i++) parsePageToken(tokens[i], total, pages, errors);
+    return { pages: uniqSorted(pages), errors: errors };
+  }
+
+  /* Odd/even box: "odd:1-99; even:2-100"  or  "odd 1-99, even 2-100" */
+  function parseParity(text, total) {
+    total = normalizeTotal(total);
+    var src = String(text == null ? "" : text).trim();
+    var errors = [], odd = null, even = null;
+    if (!src) return { mode: "all", odd: null, even: null, errors: [{ token: "", code: ERR.EMPTY }] };
+    var tokens = src.split(SEPARATORS);
+    for (var i = 0; i < tokens.length; i++) {
+      var tok = tokens[i].trim();
+      if (!tok) continue;
+      var m = /^(odd|even|奇数|偶数|奇數|偶數)\s*[:：]?\s*(.*)$/i.exec(tok);
+      if (!m) {
+        /* allow a bare "odd" / "even" meaning the whole side */
+        if (/^(odd|奇数|奇數)$/i.test(tok)) { odd = { a: 1, b: total }; continue; }
+        if (/^(even|偶数|偶數)$/i.test(tok)) { even = { a: 1, b: total }; continue; }
+        errors.push({ token: tok, code: ERR.INVALID });
+        continue;
+      }
+      var isEven = /^even|^偶/i.test(m[1]);
+      var rest = m[2].trim();
+      if (!rest) {
+        var whole = { a: 1, b: total };
+        if (isEven) even = whole; else odd = whole;
+        continue;
+      }
+      var span = parseSingleSpan(rest, total, errors, tok);
+      if (!span) continue;
+      if (isEven) even = { a: span.a, b: span.b };
+      else odd = { a: span.a, b: span.b };
+    }
+    var mode = odd && even ? "all" : even ? "even" : odd ? "odd" : "all";
+    return { mode: mode, odd: odd, even: even, errors: errors };
+  }
+
+  /* ---------- building the selection from the parity controls ---------- */
+
+  function buildParity(total, mode, oddLimit, evenLimit) {
+    total = normalizeTotal(total);
+    var odd = oddLimit ? parityRange(oddLimit.a, oddLimit.b, "odd") : parityRange(1, total, "odd");
+    var even = evenLimit ? parityRange(evenLimit.a, evenLimit.b, "even") : parityRange(1, total, "even");
+    if (mode === "odd") return uniqSorted(odd);
+    if (mode === "even") return uniqSorted(even);
+    return uniqSorted(odd.concat(even));
+  }
+
+  /* ---------- formatting for the print dialog ---------- */
+
+  function mergeRanges(pages) {
+    var out = [];
+    for (var i = 0; i < pages.length; i++) {
+      var p = pages[i];
+      var last = out[out.length - 1];
+      if (last && p === last.b + 1) last.b = p;
+      else out.push({ a: p, b: p });
+    }
+    return out;
+  }
+
+  function tokenText(tok) {
+    return tok.a === tok.b ? String(tok.a) : tok.a + "-" + tok.b;
+  }
+
+  /**
+   * opts: { compact = true, sep = ",", reverse = false, batch = 0 }
+   * - compact merges runs into a-b; otherwise every page is listed on its own
+   * - reverse reverses the order of the listed runs/pages (not the numbers inside a run)
+   * - batch > 0 splits the list into lines of at most `batch` pages each
+   */
+  function formatList(pages, opts) {
+    opts = opts || {};
+    var compact = opts.compact !== false;
+    var sep = opts.sep == null ? "," : opts.sep;
+    var reverse = !!opts.reverse;
+    var batch = Math.round(Number(opts.batch) || 0);
+    if (batch < 0) batch = 0;
+
+    if (!pages || !pages.length) return "";
+    var sorted = uniqSorted(pages);
+    var tokens = compact ? mergeRanges(sorted) : sorted.map(function (p) { return { a: p, b: p }; });
+    if (reverse) tokens.reverse();
+    if (!batch || batch <= 1) {
+      return tokens.map(tokenText).join(sep);
+    }
+
+    /* batch: split on page counts, splitting runs that straddle a boundary */
+    var groups = [], cur = [], used = 0;
+    for (var i = 0; i < tokens.length; i++) {
+      var tok = tokens[i], a = tok.a, b = tok.b;
+      while (a <= b) {
+        var room = batch - used;
+        var take = Math.min(room, b - a + 1);
+        var end = a + take - 1;
+        cur.push({ a: a, b: end });
+        used += take;
+        a = end + 1;
+        if (used >= batch) { groups.push(cur); cur = []; used = 0; }
+      }
+    }
+    if (cur.length) groups.push(cur);
+    return groups
+      .map(function (g) { return g.map(function (t) { return tokenText(t); }).join(sep); })
+      .join("\n");
+  }
+
+  /* ---------- selection set operations ---------- */
+
+  function applyOp(current, incoming, op) {
+    var map = Object.create(null);
+    for (var i = 0; i < current.length; i++) map[current[i]] = 1;
+    if (op === "replace") {
+      map = Object.create(null);
+      for (var j = 0; j < incoming.length; j++) map[incoming[j]] = 1;
+    } else if (op === "remove") {
+      for (var k = 0; k < incoming.length; k++) delete map[incoming[k]];
+    } else {
+      for (var l = 0; l < incoming.length; l++) map[incoming[l]] = 1;
+    }
+    var out = [];
+    for (var key in map) if (map[key]) out.push(parseInt(key, 10));
+    return uniqSorted(out);
+  }
+
+  function toggle(pages, page) {
+    var out = pages.slice();
+    var idx = out.indexOf(page);
+    if (idx >= 0) out.splice(idx, 1);
+    else out.push(page);
+    return uniqSorted(out);
+  }
+
+  function invert(pages, total) {
+    total = normalizeTotal(total);
+    var map = Object.create(null);
+    for (var i = 0; i < pages.length; i++) map[pages[i]] = 1;
+    var out = [];
+    for (var n = 1; n <= total; n++) if (!map[n]) out.push(n);
+    return out;
+  }
+
+  function allPages(total) {
+    total = normalizeTotal(total);
+    var out = [];
+    for (var n = 1; n <= total; n++) out.push(n);
+    return out;
+  }
+
+  /* Shift-click span filling: extend from `anchor` to `page`, inclusive. */
+  function span(anchor, page) {
+    return range(Math.min(anchor, page), Math.max(anchor, page), 1);
+  }
+
+  /* ---------- language detection ---------- */
+
+  var LANGS = ["zh-CN", "zh-TW", "ja", "ko", "fr", "de", "en"];
+
+  function detectLang(tags) {
+    if (typeof tags === "string") tags = [tags];
+    if (!tags || !tags.length) return "en";
+    for (var i = 0; i < tags.length; i++) {
+      var tag = String(tags[i] || "").toLowerCase().replace("_", "-");
+      if (!tag) continue;
+      if (tag.indexOf("zh") === 0) {
+        if (/hant|tw|hk|mo/.test(tag)) return "zh-TW";
+        return "zh-CN";
+      }
+      if (tag.indexOf("ja") === 0) return "ja";
+      if (tag.indexOf("ko") === 0) return "ko";
+      if (tag.indexOf("fr") === 0) return "fr";
+      if (tag.indexOf("de") === 0) return "de";
+      if (tag.indexOf("en") === 0) return "en";
+    }
+    return "en";
+  }
+
+  /* ---------- share links ---------- */
+
+  function encodeState(total, pages) {
+    var q = "t=" + normalizeTotal(total);
+    var list = formatList(pages, { compact: true, sep: "," });
+    if (list) q += "&p=" + list;
+    return q;
+  }
+
+  function decodeState(hash, fallbackTotal) {
+    var src = String(hash || "");
+    if (src.charAt(0) === "#") src = src.slice(1);
+    if (!src) return null;
+    var parts = src.split("&");
+    var total = null, pagesText = null;
+    for (var i = 0; i < parts.length; i++) {
+      var kv = parts[i].split("=");
+      if (kv.length < 2) continue;
+      var key = decodeURIComponent(kv[0]);
+      var val = decodeURIComponent(kv.slice(1).join("="));
+      if (key === "t") total = val;
+      else if (key === "p") pagesText = val;
+    }
+    if (!pagesText && !total) return null;
+    var t = normalizeTotal(total == null ? fallbackTotal : total);
+    var pages = [];
+    if (pagesText) {
+      var parsed = parsePages(pagesText, t);
+      if (parsed.errors.length) return null;
+      pages = parsed.pages;
+    }
+    return { total: t, pages: pages };
+  }
+
+  return {
+    MIN_PAGES: MIN_PAGES,
+    MAX_PAGES: MAX_PAGES,
+    DEFAULT_TOTAL: DEFAULT_TOTAL,
+    LANGS: LANGS,
+    ERR: ERR,
+    clampInt: clampInt,
+    normalizeTotal: normalizeTotal,
+    uniqSorted: uniqSorted,
+    sanitize: sanitize,
+    range: range,
+    parityRange: parityRange,
+    splitParity: splitParity,
+    stats: stats,
+    coverage: coverage,
+    parsePages: parsePages,
+    parseParity: parseParity,
+    buildParity: buildParity,
+    mergeRanges: mergeRanges,
+    formatList: formatList,
+    applyOp: applyOp,
+    toggle: toggle,
+    invert: invert,
+    allPages: allPages,
+    span: span,
+    detectLang: detectLang,
+    encodeState: encodeState,
+    decodeState: decodeState
+  };
+})();
+
+if (typeof module !== "undefined" && module.exports) module.exports = PP;
+
+</script>
+<script>
+var I18N = {"zh-CN":{"app.title":"PagePicker — 打印页码选择器","app.name":"PagePicker","app.tagline":"给打印对话框的页码范围——为没有双面器（翻页器）的打印机而做","app.short":"打印页码选择器","header.language":"语言","header.settings":"设置","header.github":"在 GitHub 查看源码","heatmap.title":"一屏看全每一页","heatmap.legendUnselected":"未选","heatmap.legendOdd":"奇数面","heatmap.legendEven":"偶数面","heatmap.coverage":"已选 {sel} / {total} 页（{pct}%）","heatmap.clickHint":"点一下方格就切换这一页","heatmap.pageTitle":"第 {n} 页","heatmap.show":"显示顶部总览图","heatmap.highlightGaps":"标出没选的页","quick.selectAll":"全选","quick.clear":"清空","quick.invert":"反选","quick.odds":"仅奇数","quick.evens":"仅偶数","total.label":"总页数","total.decrease":"减一页","total.increase":"加一页","total.hint":"1–2000","action.label":"并入方式","action.add":"添加","action.replace":"替换","action.remove":"移除","range.title":"一段连续页码","range.desc":"选好起止页，再应用。","range.from":"从","range.to":"到","range.step":"步长","range.step1":"每一页","range.step2":"每隔一页","range.sliderHint":"拖动任意一端把手即可改范围","range.direct":"或直接输入","range.directHint":"逗号、空格或「、」分隔——1-5, 8, 10-13, odd, even, 1-99/2","range.invalid":"看不懂：{token}","range.empty":"至少输入一个页码","range.outOfRange":"页码只能是 1 到 {total}","parity.title":"奇偶页","parity.desc":"先打一面，翻纸叠，再打另一面。","parity.mode":"保留","parity.modeAll":"两面都要","parity.modeOdd":"只要奇数页","parity.modeEven":"只要偶数页","parity.oddLimit":"奇数页从…到…","parity.evenLimit":"偶数页从…到…","parity.enableLimit":"限制这一面","parity.limitHint":"不勾选就是用整份文档","parity.direct":"或直接输入","parity.directHint":"odd:1-99; even:2-100——和上面两个控件是同一件事","manual.title":"逐页点选","manual.hint":"单击切换 · Shift+单击 可整段填充","manual.selected":"已选 {n} 页","output.title":"给打印对话框","output.desc":"粘贴到「页面范围 / Pages」。","output.tabAll":"合并","output.tabOdd":"奇数","output.tabEven":"偶数","output.copy":"复制","output.empty":"还没有选页","output.oddCount":"奇数：{n} 页","output.evenCount":"偶数：{n} 页","output.allCount":"合计：{n} 页","output.options":"格式","output.compact":"合并连续页","output.separator":"分隔符","output.sepComma":", —— 无空格","output.sepCommaSpace":", —— 带空格","output.sepIdeographic":"、","output.sepSlash":"/","output.sepSpace":"空格","output.sepNewline":"换行","output.reverse":"倒序","output.batch":"分批，每批","output.batchOff":"不分批","output.share":"复制分享链接","output.shareHint":"链接会带上总页数和当前选择。","records.title":"记录","records.desc":"每次复制都会留一条。","records.empty":"还没有记录。复制一次输出就会出现在这里。","records.restore":"恢复这次选择","records.delete":"删除","records.clear":"清空","records.clearConfirm":"要删除全部记录吗？","records.pages":"{n} 页","records.note":"只存在这个浏览器里，不会上传。","settings.title":"设置","settings.language":"语言","settings.languageAuto":"自动检测","settings.languageAutoDetected":"自动检测——{lang}","settings.languageHint":"首次访问时按浏览器语言自动选择；切换后界面文字会立即更新。","settings.interface":"界面","settings.showMap":"在顶部显示总览热力图","settings.highlightGaps":"标出没被选中的页","settings.showPromo":"显示底部署名与相关项目","settings.data":"数据","settings.clearData":"清除已保存的数据","settings.clearDataConfirm":"清除这个浏览器里的设置、选择和记录？","settings.dataCleared":"已清除本地数据","settings.about":"关于","settings.version":"版本 {v}","settings.offline":"完全在本机运行，不发送任何网络请求。","settings.license":"开源 · MIT","settings.shortcuts":"键盘","settings.shortcutHint":"Shift+单击页码可整段填充 · Esc 关闭弹窗","footer.local":"完全本机执行，不连网。","footer.source":"源码","footer.license":"开源 · MIT","footer.projects":"同一个作者的其他工具","ad.imgprint.name":"图片打印","ad.imgprint.desc":"多张图排版到一张纸上：纸张、页边距、每页 1–4 张，并提示有效 DPI 与色彩空间。单文件、离线、七种语言。","ad.imgprint.cta":"打开图片打印","ad.md2pdf.name":"md2pdf","ad.md2pdf.desc":"把 Markdown 排成矢量文字 PDF：LaTeX 公式、化学式、内嵌 SVG，直接可印。单文件、离线、无需装字体。","ad.md2pdf.cta":"打开 md2pdf","common.apply":"应用","common.cancel":"取消","common.close":"关闭","common.confirm":"确定","common.pages":"页","toast.copied":"已复制到剪贴板","toast.copyManual":"已选中，按 Ctrl+C 复制","toast.linkCopied":"分享链接已复制","toast.applied":"选区已更新","toast.restored":"选区已恢复","toast.deleted":"记录已删除","toast.cleared":"已清空选区","toast.nothing":"先选中至少一页","toast.invalid":"这段输入没看懂","toast.saved":"已存入记录","toast.reset":"已恢复默认","a11y.map":"页码总览图","a11y.grid":"页码网格","a11y.output":"给打印对话框的页码范围","a11y.decrease":"减少","a11y.increase":"增加"},"zh-TW":{"app.title":"PagePicker — 列印頁碼範圍選擇器","app.name":"PagePicker","app.tagline":"給列印對話框用的頁碼範圍，專為沒有自動雙面列印器的印表機而做","app.short":"列印對話框的頁碼範圍工具","header.language":"語言","header.settings":"設定","header.github":"在 GitHub 查看原始碼","heatmap.title":"一覽所有頁面","heatmap.legendUnselected":"未列印","heatmap.legendOdd":"奇數面","heatmap.legendEven":"偶數面","heatmap.coverage":"已選 {sel} / {total} 頁（{pct}%）","heatmap.clickHint":"點一下方格即可切換該頁","heatmap.pageTitle":"第 {n} 頁","heatmap.show":"顯示總覽圖","heatmap.highlightGaps":"標出未選取的頁面","quick.selectAll":"全選","quick.clear":"清除","quick.invert":"反選","quick.odds":"僅奇數","quick.evens":"僅偶數","total.label":"總頁數","total.decrease":"減少一頁","total.increase":"增加一頁","total.hint":"1–2000","action.label":"套用方式","action.add":"加入","action.replace":"取代","action.remove":"移除","range.title":"連續頁碼範圍","range.desc":"選好起止頁，再套用。","range.from":"從","range.to":"到","range.step":"間隔","range.step1":"每一頁","range.step2":"每隔一頁","range.sliderHint":"拖曳兩端控制點即可移動範圍","range.direct":"或直接輸入","range.directHint":"逗號、空格或「、」可分隔項目——1-5, 8, 10-13, odd, even, 1-99/2","range.invalid":"無法辨識：{token}","range.empty":"請至少輸入一個頁碼","range.outOfRange":"頁碼範圍為 1 到 {total}","parity.title":"奇偶頁","parity.desc":"先印一面，翻轉紙疊，再印另一面。","parity.mode":"保留","parity.modeAll":"兩面都要","parity.modeOdd":"只要奇數頁","parity.modeEven":"只要偶數頁","parity.oddLimit":"奇數頁：… 到 …","parity.evenLimit":"偶數頁：… 到 …","parity.enableLimit":"限制這一面","parity.limitHint":"取消勾選即使用整份文件","parity.direct":"或直接輸入","parity.directHint":"odd:1-99; even:2-100——與上方兩個控制項代表相同的兩面","manual.title":"逐頁選取","manual.hint":"點擊切換 · Shift+點擊可整段選取","manual.selected":"已選 {n} 頁","output.title":"給列印對話框","output.desc":"貼上到「頁面範圍 / Pages」。","output.tabAll":"全部","output.tabOdd":"奇數","output.tabEven":"偶數","output.copy":"複製","output.empty":"尚未選取任何頁面","output.oddCount":"奇數：{n} 頁","output.evenCount":"偶數：{n} 頁","output.allCount":"全部：{n} 頁","output.options":"格式","output.compact":"合併連續頁碼","output.separator":"分隔符號","output.sepComma":", — 不加空格","output.sepCommaSpace":", — 加空格","output.sepIdeographic":"、","output.sepSlash":"/","output.sepSpace":"空格","output.sepNewline":"換行","output.reverse":"反轉順序","output.batch":"分批，每批","output.batchOff":"不分批","output.share":"複製分享連結","output.shareHint":"連結會包含總頁數與目前的選取範圍。","records.title":"記錄","records.desc":"每次複製的內容都會保留在這裡。","records.empty":"尚無記錄。複製一次輸出，就會出現在這裡。","records.restore":"還原這次選取","records.delete":"刪除","records.clear":"全部清除","records.clearConfirm":"要刪除所有記錄嗎？","records.pages":"{n} 頁","records.note":"只保留在這個瀏覽器中，不會上傳。","settings.title":"設定","settings.language":"語言","settings.languageAuto":"自動","settings.languageAutoDetected":"自動 — {lang}","settings.languageHint":"首次造訪時會依瀏覽器語言自動判斷；變更後介面文字會重新載入。","settings.interface":"介面","settings.showMap":"在頂端顯示總覽熱力圖","settings.highlightGaps":"標示未選取的頁面","settings.showPromo":"顯示底部的作者資訊與相關專案","settings.data":"資料","settings.clearData":"清除已儲存的資料","settings.clearDataConfirm":"要從這個瀏覽器移除設定、選取範圍與記錄嗎？","settings.dataCleared":"已清除儲存的資料","settings.about":"關於","settings.version":"版本 {v}","settings.offline":"完全在本機執行，不會發出任何網路請求。","settings.license":"開放原始碼 · MIT","settings.shortcuts":"鍵盤","settings.shortcutHint":"Shift+點擊頁碼可填滿整段 · Esc 關閉對話框","footer.local":"完全在本機執行，不會傳送任何資料。","footer.source":"原始碼","footer.license":"開放原始碼 · MIT","footer.projects":"同一位作者的其他工具","ad.imgprint.name":"imgprint","ad.imgprint.desc":"一張紙印多張相片：紙張尺寸、頁邊界、每頁 1–4 張，並提示有效 DPI 與色彩空間。單一檔案、離線、支援七種語言。","ad.imgprint.cta":"開啟 imgprint","ad.md2pdf.name":"md2pdf","ad.md2pdf.desc":"把 Markdown 排成向量文字 PDF：LaTeX 數學式、化學式、內嵌 SVG，版面可直接列印。單一檔案、離線、無需安裝字型。","ad.md2pdf.cta":"開啟 md2pdf","common.apply":"套用","common.cancel":"取消","common.close":"關閉","common.confirm":"確定","common.pages":"頁","toast.copied":"已複製到剪貼簿","toast.copyManual":"已選取，按 Ctrl+C 複製","toast.linkCopied":"分享連結已複製","toast.applied":"選取範圍已更新","toast.restored":"選取範圍已還原","toast.deleted":"記錄已刪除","toast.cleared":"已清除選取範圍","toast.nothing":"請先選取至少一頁","toast.invalid":"無法辨識這段輸入","toast.saved":"已加入記錄","toast.reset":"已恢復預設值","a11y.map":"頁碼總覽圖","a11y.grid":"頁碼格線","a11y.output":"列印對話框的頁碼範圍","a11y.decrease":"減少","a11y.increase":"增加"},"ja":{"app.title":"PagePicker — 印刷用ページ範囲ビルダー","app.name":"PagePicker","app.tagline":"両面ユニットのないプリンター向けの、印刷ダイアログ用ページ範囲","app.short":"印刷ダイアログ用のページ範囲ビルダー","header.language":"言語","header.settings":"設定","header.github":"GitHub でソースを見る","heatmap.title":"全ページをひと目で確認","heatmap.legendUnselected":"印刷しない","heatmap.legendOdd":"奇数面","heatmap.legendEven":"偶数面","heatmap.coverage":"{total} ページ中 {sel} ページを選択（{pct}%）","heatmap.clickHint":"セルをクリックするとそのページを切り替えられます","heatmap.pageTitle":"{n} ページ","heatmap.show":"全体マップを表示","heatmap.highlightGaps":"選択から外れたページを目立たせる","quick.selectAll":"すべて","quick.clear":"なし","quick.invert":"反転","quick.odds":"奇数のみ","quick.evens":"偶数のみ","total.label":"総ページ数","total.decrease":"1ページ減らす","total.increase":"1ページ増やす","total.hint":"1〜2000","action.label":"適用時","action.add":"追加","action.replace":"置き換え","action.remove":"除外","range.title":"連続したページ範囲","range.desc":"範囲を選んで適用します。","range.from":"開始","range.to":"終了","range.step":"間隔","range.step1":"すべてのページ","range.step2":"1ページおき","range.sliderHint":"両端のハンドルをドラッグすると範囲を移動できます","range.direct":"または直接入力","range.directHint":"カンマ・スペース・「、」で区切ります — 1-5, 8, 10-13, odd, even, 1-99/2","range.invalid":"解釈できません：{token}","range.empty":"ページ番号を1つ以上入力してください","range.outOfRange":"ページは 1 〜 {total} の範囲です","parity.title":"奇数と偶数","parity.desc":"片面を印刷して用紙を裏返し、もう片面を印刷します。","parity.mode":"保持","parity.modeAll":"両面","parity.modeOdd":"奇数のみ","parity.modeEven":"偶数のみ","parity.oddLimit":"奇数ページ：… 〜 …","parity.evenLimit":"偶数ページ：… 〜 …","parity.enableLimit":"この面を制限","parity.limitHint":"チェックを外すと文書全体になります","parity.direct":"または直接入力","parity.directHint":"odd:1-99; even:2-100 — 上と同じ2つの面を指定します","manual.title":"1ページずつ選ぶ","manual.hint":"クリックで切り替え · Shift+クリックで範囲をまとめて選択","manual.selected":"{n} ページ選択中","output.title":"印刷ダイアログ用","output.desc":"「ページ / ページ範囲」に貼り付けます。","output.tabAll":"すべて","output.tabOdd":"奇数","output.tabEven":"偶数","output.copy":"コピー","output.empty":"まだ何も選択されていません","output.oddCount":"奇数：{n} ページ","output.evenCount":"偶数：{n} ページ","output.allCount":"合計：{n} ページ","output.options":"形式","output.compact":"連続するページをまとめる","output.separator":"区切り文字","output.sepComma":", — スペースなし","output.sepCommaSpace":", — スペースあり","output.sepIdeographic":"、","output.sepSlash":"/","output.sepSpace":"スペース","output.sepNewline":"改行","output.reverse":"逆順","output.batch":"分割単位","output.batchOff":"分割なし","output.share":"共有リンクをコピー","output.shareHint":"リンクには総ページ数と選択内容が含まれます。","records.title":"履歴","records.desc":"コピーした内容はここに残ります。","records.empty":"まだありません。出力をコピーすると、ここに表示されます。","records.restore":"この選択を復元","records.delete":"削除","records.clear":"すべて削除","records.clearConfirm":"保存した履歴をすべて削除しますか？","records.pages":"{n} ページ","records.note":"このブラウザ内だけに保存され、アップロードはされません。","settings.title":"設定","settings.language":"言語","settings.languageAuto":"自動","settings.languageAutoDetected":"自動 — {lang}","settings.languageHint":"初回訪問時にブラウザの言語から自動判定します。変更すると表示が更新されます。","settings.interface":"表示","settings.showMap":"上部にヒートマップを表示","settings.highlightGaps":"選択していないページを目立たせる","settings.showPromo":"フッターのクレジットと関連プロジェクトを表示","settings.data":"データ","settings.clearData":"保存データを削除","settings.clearDataConfirm":"このブラウザの設定・選択内容・履歴を削除しますか？","settings.dataCleared":"保存データを削除しました","settings.about":"アプリについて","settings.version":"バージョン {v}","settings.offline":"すべてこの端末内で動作します。ネットワーク通信はありません。","settings.license":"オープンソース · MIT","settings.shortcuts":"キーボード","settings.shortcutHint":"Shift+クリックで範囲をまとめて選択 · Esc でダイアログを閉じる","footer.local":"すべてこの端末内で動作し、どこにも送信されません。","footer.source":"ソースコード","footer.license":"オープンソース · MIT","footer.projects":"同じ作者のツール","ad.imgprint.name":"imgprint","ad.imgprint.desc":"1枚に複数の写真を印刷：用紙サイズ、余白、1ページ 1〜4 枚、実効 DPI と色空間の警告。単一ファイル・オフライン・7言語対応。","ad.imgprint.cta":"imgprint を開く","ad.md2pdf.name":"md2pdf","ad.md2pdf.desc":"Markdown をベクターテキストの PDF に：LaTeX 数式、化学式、インライン SVG、印刷にそのまま使えるレイアウト。単一ファイル・オフライン・フォントのインストール不要。","ad.md2pdf.cta":"md2pdf を開く","common.apply":"適用","common.cancel":"キャンセル","common.close":"閉じる","common.confirm":"確定","common.pages":"ページ","toast.copied":"クリップボードにコピーしました","toast.copyManual":"選択しました。Ctrl+C でコピー","toast.linkCopied":"共有リンクをコピーしました","toast.applied":"選択を更新しました","toast.restored":"選択を復元しました","toast.deleted":"履歴を削除しました","toast.cleared":"選択を解除しました","toast.nothing":"先に1ページ以上選択してください","toast.invalid":"入力を解釈できませんでした","toast.saved":"履歴に追加しました","toast.reset":"初期設定に戻しました","a11y.map":"ページ全体のヒートマップ","a11y.grid":"ページグリッド","a11y.output":"印刷ダイアログ用のページ範囲","a11y.decrease":"減らす","a11y.increase":"増やす"},"ko":{"app.title":"PagePicker — 인쇄 페이지 범위 작성기","app.name":"PagePicker","app.tagline":"양면 인쇄 장치가 없는 프린터를 위한 인쇄 대화상자용 페이지 범위","app.short":"인쇄 대화상자용 페이지 범위 도구","header.language":"언어","header.settings":"설정","header.github":"GitHub에서 소스 보기","heatmap.title":"모든 페이지를 한눈에","heatmap.legendUnselected":"인쇄 안 함","heatmap.legendOdd":"홀수 면","heatmap.legendEven":"짝수 면","heatmap.coverage":"{total}페이지 중 {sel}페이지 선택({pct}%)","heatmap.clickHint":"셀을 클릭하면 해당 페이지가 전환됩니다","heatmap.pageTitle":"{n}페이지","heatmap.show":"전체 히트맵 표시","heatmap.highlightGaps":"선택하지 않은 페이지 표시","quick.selectAll":"전체","quick.clear":"없음","quick.invert":"반전","quick.odds":"홀수만","quick.evens":"짝수만","total.label":"전체 페이지 수","total.decrease":"한 페이지 줄이기","total.increase":"한 페이지 늘리기","total.hint":"1~2000","action.label":"적용 방식","action.add":"추가","action.replace":"교체","action.remove":"제외","range.title":"연속 페이지 범위","range.desc":"범위를 고른 뒤 적용하세요.","range.from":"시작","range.to":"끝","range.step":"간격","range.step1":"모든 페이지","range.step2":"한 페이지씩 건너뛰기","range.sliderHint":"양쪽 핸들을 끌어 범위를 옮기세요","range.direct":"또는 직접 입력","range.directHint":"쉼표, 공백 또는 、로 구분합니다 — 1-5, 8, 10-13, odd, even, 1-99/2","range.invalid":"이해할 수 없음: {token}","range.empty":"페이지 번호를 하나 이상 입력하세요","range.outOfRange":"페이지는 1부터 {total}까지입니다","parity.title":"홀수와 짝수","parity.desc":"한 면을 인쇄한 뒤 종이를 뒤집어 다른 면을 인쇄합니다.","parity.mode":"유지","parity.modeAll":"양면","parity.modeOdd":"홀수만","parity.modeEven":"짝수만","parity.oddLimit":"홀수 페이지: … ~ …","parity.evenLimit":"짝수 페이지: … ~ …","parity.enableLimit":"이 면 제한","parity.limitHint":"체크를 해제하면 문서 전체를 사용합니다","parity.direct":"또는 직접 입력","parity.directHint":"odd:1-99; even:2-100 — 위 컨트롤과 같은 두 면을 뜻합니다","manual.title":"하나씩 선택","manual.hint":"클릭으로 전환 · Shift+클릭으로 범위 채우기","manual.selected":"{n}페이지 선택됨","output.title":"인쇄 대화상자용","output.desc":"“페이지 / 페이지 범위”에 붙여넣으세요.","output.tabAll":"전체","output.tabOdd":"홀수","output.tabEven":"짝수","output.copy":"복사","output.empty":"아직 선택된 페이지가 없습니다","output.oddCount":"홀수: {n}페이지","output.evenCount":"짝수: {n}페이지","output.allCount":"전체: {n}페이지","output.options":"형식","output.compact":"연속 페이지 합치기","output.separator":"구분자","output.sepComma":", — 공백 없음","output.sepCommaSpace":", — 공백 있음","output.sepIdeographic":"、","output.sepSlash":"/","output.sepSpace":"공백","output.sepNewline":"줄바꿈","output.reverse":"역순","output.batch":"분할 단위","output.batchOff":"분할 안 함","output.share":"공유 링크 복사","output.shareHint":"링크에 전체 페이지 수와 선택 내용이 담깁니다.","records.title":"기록","records.desc":"복사한 내용은 모두 여기에 보관됩니다.","records.empty":"아직 기록이 없습니다. 출력을 복사하면 여기에 표시됩니다.","records.restore":"이 선택 복원","records.delete":"삭제","records.clear":"전체 삭제","records.clearConfirm":"저장된 기록을 모두 삭제할까요?","records.pages":"{n}페이지","records.note":"이 브라우저에만 보관되며 업로드되지 않습니다.","settings.title":"설정","settings.language":"언어","settings.languageAuto":"자동","settings.languageAutoDetected":"자동 — {lang}","settings.languageHint":"처음 방문할 때 브라우저에서 자동으로 감지합니다. 언어를 바꾸면 화면 문구가 새로 고쳐집니다.","settings.interface":"화면","settings.showMap":"상단에 히트맵 표시","settings.highlightGaps":"선택하지 않은 페이지 표시","settings.showPromo":"푸터의 제작자 정보와 관련 프로젝트 표시","settings.data":"데이터","settings.clearData":"저장된 데이터 지우기","settings.clearDataConfirm":"이 브라우저의 설정, 선택 내용, 기록을 삭제할까요?","settings.dataCleared":"저장된 데이터를 지웠습니다","settings.about":"앱 정보","settings.version":"버전 {v}","settings.offline":"전부 이 기기에서 실행됩니다. 네트워크 요청이 없습니다.","settings.license":"오픈 소스 · MIT","settings.shortcuts":"키보드","settings.shortcutHint":"Shift+클릭으로 범위 채우기 · Esc로 대화상자 닫기","footer.local":"전부 이 기기에서 실행되며 어디에도 전송되지 않습니다.","footer.source":"소스 코드","footer.license":"오픈 소스 · MIT","footer.projects":"같은 제작자의 다른 도구","ad.imgprint.name":"imgprint","ad.imgprint.desc":"한 장에 여러 장의 사진을 인쇄: 용지 크기, 여백, 페이지당 1–4장, 실효 DPI와 색 공간 경고. 단일 파일, 오프라인, 7개 언어.","ad.imgprint.cta":"imgprint 열기","ad.md2pdf.name":"md2pdf","ad.md2pdf.desc":"Markdown을 벡터 텍스트 PDF로: LaTeX 수식, 화학식, 인라인 SVG, 인쇄에 바로 쓸 수 있는 레이아웃. 단일 파일, 오프라인, 글꼴 설치 불필요.","ad.md2pdf.cta":"md2pdf 열기","common.apply":"적용","common.cancel":"취소","common.close":"닫기","common.confirm":"확인","common.pages":"페이지","toast.copied":"클립보드에 복사했습니다","toast.copyManual":"선택했습니다. Ctrl+C를 누르세요","toast.linkCopied":"공유 링크를 복사했습니다","toast.applied":"선택 내용을 업데이트했습니다","toast.restored":"선택 내용을 복원했습니다","toast.deleted":"기록을 삭제했습니다","toast.cleared":"선택을 지웠습니다","toast.nothing":"먼저 한 페이지 이상 선택하세요","toast.invalid":"입력을 이해하지 못했습니다","toast.saved":"기록에 추가했습니다","toast.reset":"기본값으로 되돌렸습니다","a11y.map":"전체 페이지 히트맵","a11y.grid":"페이지 그리드","a11y.output":"인쇄 대화상자용 페이지 범위","a11y.decrease":"줄이기","a11y.increase":"늘리기"},"fr":{"app.title":"PagePicker — générateur de plages de pages","app.name":"PagePicker","app.tagline":"Des plages de pages pour la boîte d’impression, pensées pour les imprimantes sans recto-verso","app.short":"Générateur de plages de pages pour la boîte d’impression","header.language":"Langue","header.settings":"Réglages","header.github":"Code source sur GitHub","heatmap.title":"Toutes les pages en un coup d’œil","heatmap.legendUnselected":"Non imprimé","heatmap.legendOdd":"Côté impair","heatmap.legendEven":"Côté pair","heatmap.coverage":"{sel} pages sur {total} sélectionnées ({pct} %)","heatmap.clickHint":"Cliquez sur une case pour basculer cette page","heatmap.pageTitle":"Page {n}","heatmap.show":"Afficher la carte d’ensemble","heatmap.highlightGaps":"Signaler les pages laissées de côté","quick.selectAll":"Tout","quick.clear":"Aucun","quick.invert":"Inverser","quick.odds":"Uniquement impaires","quick.evens":"Uniquement paires","total.label":"Total de pages","total.decrease":"Une page de moins","total.increase":"Une page de plus","total.hint":"1–2000","action.label":"À l’application","action.add":"Ajouter","action.replace":"Remplacer","action.remove":"Retirer","range.title":"Une suite de pages","range.desc":"Choisissez une plage, puis appliquez-la.","range.from":"De","range.to":"À","range.step":"Pas","range.step1":"Chaque page","range.step2":"Une page sur deux","range.sliderHint":"Faites glisser l’une des poignées pour déplacer la plage","range.direct":"Ou saisissez-la","range.directHint":"Virgules, espaces ou 、 pour séparer — 1-5, 8, 10-13, odd, even, 1-99/2","range.invalid":"Non compris : {token}","range.empty":"Saisissez au moins un numéro de page","range.outOfRange":"Les pages vont de 1 à {total}","parity.title":"Pages impaires et paires","parity.desc":"Imprimez une face, retournez la pile, imprimez l’autre.","parity.mode":"Conserver","parity.modeAll":"Les deux côtés","parity.modeOdd":"Impaires seulement","parity.modeEven":"Paires seulement","parity.oddLimit":"Pages impaires : de … à …","parity.evenLimit":"Pages paires : de … à …","parity.enableLimit":"Limiter ce côté","parity.limitHint":"Décochez pour utiliser tout le document","parity.direct":"Ou saisissez-le","parity.directHint":"odd:1-99; even:2-100 — les deux mêmes côtés que les contrôles ci-dessus","manual.title":"Sélectionner une par une","manual.hint":"Cliquez pour basculer · Shift+clic pour remplir une plage","manual.selected":"{n} pages sélectionnées","output.title":"Pour la boîte d’impression","output.desc":"À coller dans « Pages / Plage de pages ».","output.tabAll":"Tout","output.tabOdd":"Impaires","output.tabEven":"Paires","output.copy":"Copier","output.empty":"Aucune page sélectionnée pour l’instant","output.oddCount":"Impaires : {n} pages","output.evenCount":"Paires : {n} pages","output.allCount":"Total : {n} pages","output.options":"Mise en forme","output.compact":"Fusionner les pages consécutives","output.separator":"Séparateur","output.sepComma":", — sans espace","output.sepCommaSpace":", — avec espace","output.sepIdeographic":"、","output.sepSlash":"/","output.sepSpace":"espace","output.sepNewline":"nouvelle ligne","output.reverse":"Inverser l’ordre","output.batch":"Découper par lots de","output.batchOff":"pas de découpage","output.share":"Copier le lien de partage","output.shareHint":"Le lien contient le nombre de pages et la sélection.","records.title":"Historique","records.desc":"Tout ce que vous copiez est conservé ici.","records.empty":"Rien pour l’instant. Copiez un résultat et il apparaîtra ici.","records.restore":"Restaurer cette sélection","records.delete":"Supprimer","records.clear":"Tout effacer","records.clearConfirm":"Supprimer tous les enregistrements ?","records.pages":"{n} pages","records.note":"Conservé uniquement dans ce navigateur — jamais envoyé.","settings.title":"Réglages","settings.language":"Langue","settings.languageAuto":"Automatique","settings.languageAutoDetected":"Automatique — {lang}","settings.languageHint":"Détecté depuis le navigateur à la première visite. Changer la langue recharge les libellés.","settings.interface":"Affichage","settings.showMap":"Afficher la carte de chaleur en haut","settings.highlightGaps":"Signaler les pages non sélectionnées","settings.showPromo":"Afficher les crédits en pied de page et les projets associés","settings.data":"Données","settings.clearData":"Effacer les données enregistrées","settings.clearDataConfirm":"Supprimer les réglages, la sélection et l’historique de ce navigateur ?","settings.dataCleared":"Données enregistrées effacées","settings.about":"À propos","settings.version":"Version {v}","settings.offline":"Fonctionne entièrement sur cet appareil. Aucune requête réseau.","settings.license":"Logiciel libre · MIT","settings.shortcuts":"Clavier","settings.shortcutHint":"Shift+clic sur une page remplit la plage · Échap ferme les fenêtres","footer.local":"Fonctionne entièrement sur cet appareil — rien n’est envoyé.","footer.source":"Code source","footer.license":"Logiciel libre · MIT","footer.projects":"Du même auteur","ad.imgprint.name":"imgprint","ad.imgprint.desc":"Imprimez plusieurs photos par feuille : format du papier, marges, 1 à 4 images par page, avertissements DPI et espace colorimétrique. Fichier unique, hors ligne, sept langues.","ad.imgprint.cta":"Ouvrir imgprint","ad.md2pdf.name":"md2pdf","ad.md2pdf.desc":"Transformez du Markdown en PDF à texte vectoriel : maths LaTeX, chimie, SVG intégré, mise en page prête à imprimer. Fichier unique, hors ligne, aucune police à installer.","ad.md2pdf.cta":"Ouvrir md2pdf","common.apply":"Appliquer","common.cancel":"Annuler","common.close":"Fermer","common.confirm":"Confirmer","common.pages":"pages","toast.copied":"Copié dans le presse-papiers","toast.copyManual":"Sélectionné — appuyez sur Ctrl+C","toast.linkCopied":"Lien de partage copié","toast.applied":"Sélection mise à jour","toast.restored":"Sélection restaurée","toast.deleted":"Enregistrement supprimé","toast.cleared":"Sélection effacée","toast.nothing":"Sélectionnez d’abord au moins une page","toast.invalid":"Cette saisie n’a pas été comprise","toast.saved":"Ajouté à l’historique","toast.reset":"Retour aux réglages par défaut","a11y.map":"Carte de chaleur des pages","a11y.grid":"Grille des pages","a11y.output":"Plage de pages pour la boîte d’impression","a11y.decrease":"Diminuer","a11y.increase":"Augmenter"},"de":{"app.title":"PagePicker — Generator für Seitenbereiche","app.name":"PagePicker","app.tagline":"Seitenbereiche für den Druckdialog, gemacht für Drucker ohne Duplexeinheit","app.short":"Seitenbereich-Generator für den Druckdialog","header.language":"Sprache","header.settings":"Einstellungen","header.github":"Quellcode auf GitHub","heatmap.title":"Alle Seiten auf einen Blick","heatmap.legendUnselected":"Nicht gedruckt","heatmap.legendOdd":"Ungerade Seite","heatmap.legendEven":"Gerade Seite","heatmap.coverage":"{sel} von {total} Seiten ausgewählt ({pct}%)","heatmap.clickHint":"Klicken Sie auf eine Zelle, um die Seite umzuschalten","heatmap.pageTitle":"Seite {n}","heatmap.show":"Übersichtskarte anzeigen","heatmap.highlightGaps":"Nicht ausgewählte Seiten markieren","quick.selectAll":"Alle","quick.clear":"Keine","quick.invert":"Umkehren","quick.odds":"Nur ungerade","quick.evens":"Nur gerade","total.label":"Seiten gesamt","total.decrease":"Eine Seite weniger","total.increase":"Eine Seite mehr","total.hint":"1–2000","action.label":"Beim Anwenden","action.add":"Hinzufügen","action.replace":"Ersetzen","action.remove":"Entfernen","range.title":"Ein zusammenhängender Seitenbereich","range.desc":"Wählen Sie einen Bereich und wenden Sie ihn an.","range.from":"Von","range.to":"Bis","range.step":"Schritt","range.step1":"Jede Seite","range.step2":"Jede zweite Seite","range.sliderHint":"Ziehen Sie einen der Griffe, um den Bereich zu verschieben","range.direct":"Oder direkt eingeben","range.directHint":"Kommas, Leerzeichen oder 、 trennen Einträge — 1-5, 8, 10-13, odd, even, 1-99/2","range.invalid":"Nicht verstanden: {token}","range.empty":"Geben Sie mindestens eine Seitenzahl ein","range.outOfRange":"Seiten reichen von 1 bis {total}","parity.title":"Ungerade und gerade","parity.desc":"Erst eine Seite drucken, den Stapel wenden, dann die andere Seite drucken.","parity.mode":"Behalten","parity.modeAll":"Beide Seiten","parity.modeOdd":"Nur ungerade","parity.modeEven":"Nur gerade","parity.oddLimit":"Ungerade Seiten von … bis …","parity.evenLimit":"Gerade Seiten von … bis …","parity.enableLimit":"Diese Seite begrenzen","parity.limitHint":"Häkchen entfernen, um das ganze Dokument zu nutzen","parity.direct":"Oder direkt eingeben","parity.directHint":"odd:1-99; even:2-100 — dieselben zwei Seiten wie die Bedienelemente oben","manual.title":"Einzeln auswählen","manual.hint":"Klicken zum Umschalten · Shift+Klick füllt einen Bereich","manual.selected":"{n} ausgewählt","output.title":"Für den Druckdialog","output.desc":"In „Seiten / Seitenbereich“ einfügen.","output.tabAll":"Alle","output.tabOdd":"Ungerade","output.tabEven":"Gerade","output.copy":"Kopieren","output.empty":"Noch nichts ausgewählt","output.oddCount":"Ungerade: {n} Seiten","output.evenCount":"Gerade: {n} Seiten","output.allCount":"Gesamt: {n} Seiten","output.options":"Ausgabeformat","output.compact":"Aufeinanderfolgende Seiten zusammenfassen","output.separator":"Trennzeichen","output.sepComma":", — ohne Leerzeichen","output.sepCommaSpace":", — mit Leerzeichen","output.sepIdeographic":"、","output.sepSlash":"/","output.sepSpace":"Leerzeichen","output.sepNewline":"Zeilenumbruch","output.reverse":"Umgekehrte Reihenfolge","output.batch":"Blockgröße","output.batchOff":"keine Aufteilung","output.share":"Freigabelink kopieren","output.shareHint":"Der Link enthält die Seitenanzahl und die Auswahl.","records.title":"Verlauf","records.desc":"Alles, was Sie kopieren, wird hier aufbewahrt.","records.empty":"Noch nichts vorhanden. Kopieren Sie eine Ausgabe, dann erscheint sie hier.","records.restore":"Diese Auswahl wiederherstellen","records.delete":"Löschen","records.clear":"Alles löschen","records.clearConfirm":"Alle gespeicherten Einträge löschen?","records.pages":"{n} Seiten","records.note":"Nur in diesem Browser gespeichert — wird nie hochgeladen.","settings.title":"Einstellungen","settings.language":"Sprache","settings.languageAuto":"Automatisch","settings.languageAutoDetected":"Automatisch — {lang}","settings.languageHint":"Wird beim ersten Besuch aus dem Browser erkannt. Eine Änderung lädt die Beschriftungen neu.","settings.interface":"Oberfläche","settings.showMap":"Übersichtskarte oben anzeigen","settings.highlightGaps":"Nicht ausgewählte Seiten markieren","settings.showPromo":"Fußzeile mit Credits und verwandten Projekten anzeigen","settings.data":"Daten","settings.clearData":"Gespeicherte Daten löschen","settings.clearDataConfirm":"Einstellungen, Auswahl und Verlauf aus diesem Browser entfernen?","settings.dataCleared":"Gespeicherte Daten gelöscht","settings.about":"Über","settings.version":"Version {v}","settings.offline":"Läuft vollständig auf diesem Gerät. Keine Netzwerkanfragen.","settings.license":"Open Source · MIT","settings.shortcuts":"Tastatur","settings.shortcutHint":"Shift+Klick auf eine Seite füllt den Bereich · Esc schließt Dialoge","footer.local":"Läuft vollständig auf diesem Gerät — nichts wird irgendwohin gesendet.","footer.source":"Quellcode","footer.license":"Open Source · MIT","footer.projects":"Vom selben Autor","ad.imgprint.name":"imgprint","ad.imgprint.desc":"Mehrere Fotos pro Blatt drucken: Papierformat, Ränder, 1–4 Bilder pro Seite, Warnungen zu effektiver DPI und Farbraum. Eine einzige Datei, offline, sieben Sprachen.","ad.imgprint.cta":"imgprint öffnen","ad.md2pdf.name":"md2pdf","ad.md2pdf.desc":"Markdown in ein PDF mit Vektortext verwandeln: LaTeX-Formeln, Chemie, Inline-SVG, druckfertiges Layout. Eine einzige Datei, offline, keine Schriften zu installieren.","ad.md2pdf.cta":"md2pdf öffnen","common.apply":"Anwenden","common.cancel":"Abbrechen","common.close":"Schließen","common.confirm":"Bestätigen","common.pages":"Seiten","toast.copied":"In die Zwischenablage kopiert","toast.copyManual":"Ausgewählt — mit Ctrl+C kopieren","toast.linkCopied":"Freigabelink kopiert","toast.applied":"Auswahl aktualisiert","toast.restored":"Auswahl wiederhergestellt","toast.deleted":"Eintrag gelöscht","toast.cleared":"Auswahl aufgehoben","toast.nothing":"Wählen Sie zuerst mindestens eine Seite aus","toast.invalid":"Diese Eingabe wurde nicht verstanden","toast.saved":"Zum Verlauf hinzugefügt","toast.reset":"Auf Standard zurückgesetzt","a11y.map":"Seitenübersicht als Heatmap","a11y.grid":"Seitenraster","a11y.output":"Seitenbereich für den Druckdialog","a11y.decrease":"Verringern","a11y.increase":"Erhöhen"},"en":{"app.title":"PagePicker — print page-range builder","app.name":"PagePicker","app.tagline":"Print-dialog page ranges, built for printers without a duplexer","app.short":"Page-range builder for the print dialog","header.language":"Language","header.settings":"Settings","header.github":"Source on GitHub","heatmap.title":"Every page at a glance","heatmap.legendUnselected":"Not printed","heatmap.legendOdd":"Odd side","heatmap.legendEven":"Even side","heatmap.coverage":"{sel} of {total} pages selected ({pct}%)","heatmap.clickHint":"Click a cell to toggle that page","heatmap.pageTitle":"Page {n}","heatmap.show":"Show the overview map","heatmap.highlightGaps":"Flag the pages left out","quick.selectAll":"All","quick.clear":"None","quick.invert":"Invert","quick.odds":"Odd only","quick.evens":"Even only","total.label":"Total pages","total.decrease":"One page fewer","total.increase":"One page more","total.hint":"1–2000","action.label":"When applying","action.add":"Add","action.replace":"Replace","action.remove":"Remove","range.title":"A run of pages","range.desc":"Pick a span, then apply it.","range.from":"From","range.to":"To","range.step":"Step","range.step1":"Every page","range.step2":"Every second page","range.sliderHint":"Drag either handle to move the span","range.direct":"Or type it","range.directHint":"Commas, spaces or 、 separate items — 1-5, 8, 10-13, odd, even, 1-99/2","range.invalid":"Not understood: {token}","range.empty":"Type at least one page number","range.outOfRange":"Pages run from 1 to {total}","parity.title":"Odd and even","parity.desc":"Print one side, flip the stack, print the other.","parity.mode":"Keep","parity.modeAll":"Both sides","parity.modeOdd":"Odd only","parity.modeEven":"Even only","parity.oddLimit":"Odd pages from … to …","parity.evenLimit":"Even pages from … to …","parity.enableLimit":"Limit this side","parity.limitHint":"Untick to use the whole document","parity.direct":"Or type it","parity.directHint":"odd:1-99; even:2-100 — the same two sides as the controls above","manual.title":"Pick them one by one","manual.hint":"Click to toggle · Shift-click to fill a span","manual.selected":"{n} selected","output.title":"For the print dialog","output.desc":"Paste into “Pages / Page range”.","output.tabAll":"All","output.tabOdd":"Odd","output.tabEven":"Even","output.copy":"Copy","output.empty":"Nothing selected yet","output.oddCount":"Odd: {n} pages","output.evenCount":"Even: {n} pages","output.allCount":"All: {n} pages","output.options":"Format","output.compact":"Merge consecutive pages","output.separator":"Separator","output.sepComma":", — no space","output.sepCommaSpace":", — with space","output.sepIdeographic":"、","output.sepSlash":"/","output.sepSpace":"space","output.sepNewline":"new line","output.reverse":"Reverse order","output.batch":"Split into batches of","output.batchOff":"no batching","output.share":"Copy share link","output.shareHint":"The link carries the page count and the selection.","records.title":"History","records.desc":"Everything you copy is kept here.","records.empty":"Nothing yet. Copy an output and it will show up here.","records.restore":"Restore this selection","records.delete":"Delete","records.clear":"Clear all","records.clearConfirm":"Delete every saved record?","records.pages":"{n} pages","records.note":"Kept in this browser only — never uploaded.","settings.title":"Settings","settings.language":"Language","settings.languageAuto":"Automatic","settings.languageAutoDetected":"Automatic — {lang}","settings.languageHint":"Detected from the browser on first visit. Changing it reloads the labels.","settings.interface":"Interface","settings.showMap":"Show the overview map at the top","settings.highlightGaps":"Flag pages that are not selected","settings.showPromo":"Show the footer credits and related projects","settings.data":"Data","settings.clearData":"Clear saved data","settings.clearDataConfirm":"Remove settings, selection and history from this browser?","settings.dataCleared":"Saved data cleared","settings.about":"About","settings.version":"Version {v}","settings.offline":"Runs entirely on this device. No network requests.","settings.license":"Open source · MIT","settings.shortcuts":"Keyboard","settings.shortcutHint":"Shift-click a page fills the span · Esc closes dialogs","footer.local":"Runs entirely on this device — nothing is sent anywhere.","footer.source":"Source code","footer.license":"Open source · MIT","footer.projects":"From the same author","ad.imgprint.name":"imgprint","ad.imgprint.desc":"Print several photos per sheet: paper size, margins, 1–4 images a page, DPI and colour-space warnings. Single file, offline, seven languages.","ad.imgprint.cta":"Open imgprint","ad.md2pdf.name":"md2pdf","ad.md2pdf.desc":"Turn Markdown into a vector-text PDF: LaTeX maths, chemistry, inline SVG, print-ready page layout. Single file, offline, no fonts to install.","ad.md2pdf.cta":"Open md2pdf","common.apply":"Apply","common.cancel":"Cancel","common.close":"Close","common.confirm":"Confirm","common.pages":"pages","toast.copied":"Copied to clipboard","toast.copyManual":"Selected — press Ctrl+C","toast.linkCopied":"Share link copied","toast.applied":"Selection updated","toast.restored":"Selection restored","toast.deleted":"Record deleted","toast.cleared":"Selection cleared","toast.nothing":"Select at least one page first","toast.invalid":"That input was not understood","toast.saved":"Added to history","toast.reset":"Back to defaults","a11y.map":"Page overview map","a11y.grid":"Page grid","a11y.output":"Page range for the print dialog","a11y.decrease":"Decrease","a11y.increase":"Increase"}};
+</script>
+<script>
+/* PagePicker — UI. Expects `PP` (core), `I18N` (locale dictionaries) and the DOM from index.template.html. */
+(function () {
+  "use strict";
+
+  var VERSION = "1.0.0";
+  var STORE_KEY = "pagepicker.v1";
+  var LANGS = PP.LANGS.slice();
+  var LANG_NAMES = {
+    "zh-CN": "简体中文",
+    "zh-TW": "繁體中文",
+    ja: "日本語",
+    ko: "한국어",
+    fr: "Français",
+    de: "Deutsch",
+    en: "English"
+  };
+  var SEP_OPTIONS = [",", ", ", "、", "/", " ", "\n"];
+  var SEP_KEYS = {
+    ",": "output.sepComma",
+    ", ": "output.sepCommaSpace",
+    "、": "output.sepIdeographic",
+    "/": "output.sepSlash",
+    " ": "output.sepSpace",
+    "\n": "output.sepNewline"
+  };
+  var MAX_RECORDS = 50;
+  var DICT = typeof I18N !== "undefined" && I18N ? I18N : {};
+
+  var state;
+  var resolvedLang = "en";
+  var els = {};
+  var cells = [];
+  var chips = [];
+  var duals = {};
+  var lastAnchor = null;
+  var toastTimer = null;
+
+  /* ------------------------------------------------------------ helpers */
+
+  function $(id) { return document.getElementById(id); }
+
+  function on(el, ev, fn) { if (el) el.addEventListener(ev, fn); }
+
+  function each(sel, fn) {
+    var list = document.querySelectorAll(sel);
+    for (var i = 0; i < list.length; i++) fn(list[i]);
+  }
+
+  function t(key, vars) {
+    var dict = DICT[resolvedLang] || DICT.en || {};
+    var s = dict[key];
+    if (s == null) s = (DICT.en && DICT.en[key] != null) ? DICT.en[key] : key;
+    if (vars) {
+      s = String(s).replace(/\{(\w+)\}/g, function (m, k) {
+        return vars[k] != null ? String(vars[k]) : m;
+      });
+    }
+    return s;
+  }
+
+  function defaults() {
+    return {
+      total: 100,
+      pages: [],
+      lang: "auto",
+      showMap: true,
+      highlightGaps: false,
+      showPromo: true,
+      action: "add",
+      tab: "all",
+      out: { compact: true, sep: ",", reverse: false, batch: 0 },
+      range: { from: 1, to: 100, step: 1 },
+      parity: { mode: "all", oddOn: false, oddFrom: 1, oddTo: 99, evenOn: false, evenFrom: 2, evenTo: 100 },
+      records: []
+    };
+  }
+
+  function resolveLang() {
+    if (state.lang && state.lang !== "auto" && LANGS.indexOf(state.lang) >= 0) return state.lang;
+    var nav = (typeof navigator !== "undefined" && (navigator.languages || navigator.language)) || ["en"];
+    return PP.detectLang(nav);
+  }
+
+  function showToast(msg) {
+    els.toast.textContent = msg;
+    els.toast.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () {
+      els.toast.classList.remove("show");
+    }, 1900);
+  }
+
+  function copyText(text) {
+    return new Promise(function (resolve) {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(
+          function () { resolve(true); },
+          function () { resolve(fallbackCopy(text)); }
+        );
+      } else {
+        resolve(fallbackCopy(text));
+      }
+    });
+  }
+
+  function fallbackCopy(text) {
+    try {
+      var ta = document.createElement("textarea");
+      ta.value = text;
+      ta.setAttribute("readonly", "");
+      ta.style.position = "fixed";
+      ta.style.top = "-1000px";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      var ok = document.execCommand("copy");
+      document.body.removeChild(ta);
+      return !!ok;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /* ------------------------------------------------------------ storage */
+
+  function snapshot() {
+    return {
+      v: 1,
+      total: state.total,
+      pages: state.pages,
+      lang: state.lang,
+      showMap: state.showMap,
+      highlightGaps: state.highlightGaps,
+      showPromo: state.showPromo,
+      action: state.action,
+      tab: state.tab,
+      out: state.out,
+      range: state.range,
+      parity: state.parity,
+      records: state.records.slice(0, MAX_RECORDS)
+    };
+  }
+
+  function save() {
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(snapshot())); } catch (e) { /* private mode */ }
+  }
+
+  function mutate() {
+    save();
+    syncHash();
+  }
+
+  function syncHash() {
+    try {
+      var h = "#" + PP.encodeState(state.total, state.pages);
+      if (location.hash !== h) history.replaceState(null, "", h);
+    } catch (e) { /* file:// or sandboxed frame */ }
+  }
+
+  function load() {
+    var d = defaults();
+    var raw = null;
+    try { raw = localStorage.getItem(STORE_KEY); } catch (e) { }
+    if (raw) {
+      try {
+        var s = JSON.parse(raw);
+        if (s && typeof s === "object") {
+          d.total = PP.normalizeTotal(s.total);
+          d.pages = PP.sanitize(Array.isArray(s.pages) ? s.pages : [], d.total);
+          if (typeof s.lang === "string" && (s.lang === "auto" || LANGS.indexOf(s.lang) >= 0)) d.lang = s.lang;
+          if (typeof s.showMap === "boolean") d.showMap = s.showMap;
+          if (typeof s.highlightGaps === "boolean") d.highlightGaps = s.highlightGaps;
+          if (typeof s.showPromo === "boolean") d.showPromo = s.showPromo;
+          if (["add", "replace", "remove"].indexOf(s.action) >= 0) d.action = s.action;
+          if (["all", "odd", "even"].indexOf(s.tab) >= 0) d.tab = s.tab;
+          if (s.out && typeof s.out === "object") {
+            if (typeof s.out.compact === "boolean") d.out.compact = s.out.compact;
+            if (SEP_OPTIONS.indexOf(s.out.sep) >= 0) d.out.sep = s.out.sep;
+            if (typeof s.out.reverse === "boolean") d.out.reverse = s.out.reverse;
+            d.out.batch = PP.clampInt(s.out.batch || 0, 0, PP.MAX_PAGES);
+          }
+          if (s.range && typeof s.range === "object") {
+            d.range.from = PP.clampInt(s.range.from || 1, 1, d.total);
+            d.range.to = PP.clampInt(s.range.to || d.total, 1, d.total);
+            d.range.step = Number(s.range.step) === 2 ? 2 : 1;
+          } else {
+            d.range.to = d.total;
+          }
+          if (s.parity && typeof s.parity === "object") {
+            var pm = s.parity;
+            if (["all", "odd", "even"].indexOf(pm.mode) >= 0) d.parity.mode = pm.mode;
+            d.parity.oddOn = !!pm.oddOn;
+            d.parity.evenOn = !!pm.evenOn;
+            d.parity.oddFrom = PP.clampInt(pm.oddFrom || 1, 1, d.total);
+            d.parity.oddTo = PP.clampInt(pm.oddTo || d.total, 1, d.total);
+            d.parity.evenFrom = PP.clampInt(pm.evenFrom || 1, 1, d.total);
+            d.parity.evenTo = PP.clampInt(pm.evenTo || d.total, 1, d.total);
+            if (d.parity.oddFrom > d.parity.oddTo) { var o = d.parity.oddFrom; d.parity.oddFrom = d.parity.oddTo; d.parity.oddTo = o; }
+            if (d.parity.evenFrom > d.parity.evenTo) { var e = d.parity.evenFrom; d.parity.evenFrom = d.parity.evenTo; d.parity.evenTo = e; }
+          }
+          if (Array.isArray(s.records)) {
+            d.records = s.records.filter(function (r) {
+              return r && Array.isArray(r.pages) && typeof r.text === "string" && typeof r.ts === "number";
+            }).slice(0, MAX_RECORDS).map(function (r) {
+              return { ts: r.ts, total: PP.normalizeTotal(r.total), pages: PP.sanitize(r.pages, PP.normalizeTotal(r.total)), tab: ["all", "odd", "even"].indexOf(r.tab) >= 0 ? r.tab : "all", text: r.text };
+            });
+          }
+        }
+      } catch (e) { /* corrupt store: start fresh */ }
+    }
+
+    /* the hash wins: it is the shareable state */
+    var hs = PP.decodeState(location.hash, d.total);
+    if (hs) {
+      d.total = hs.total;
+      d.pages = hs.pages;
+    }
+    d.range.to = Math.min(d.range.to, d.total);
+    if (d.range.from > d.range.to) d.range.from = Math.min(1, d.total);
+    return d;
+  }
+
+  /* ------------------------------------------------------------ i18n paint */
+
+  function buildLangSelects() {
+    [els.langSelect, els.setLang].forEach(function (sel) {
+      if (!sel) return;
+      sel.textContent = "";
+      var auto = document.createElement("option");
+      auto.value = "auto";
+      auto.textContent = t("settings.languageAuto");
+      sel.appendChild(auto);
+      for (var i = 0; i < LANGS.length; i++) {
+        var o = document.createElement("option");
+        o.value = LANGS[i];
+        o.textContent = LANG_NAMES[LANGS[i]] || LANGS[i];
+        sel.appendChild(o);
+      }
+      sel.value = state.lang;
+      sel.title = state.lang === "auto"
+        ? t("settings.languageAutoDetected", { lang: LANG_NAMES[resolvedLang] || resolvedLang })
+        : (LANG_NAMES[state.lang] || "");
+    });
+  }
+
+  function buildSepOptions() {
+    if (!els.optSep) return;
+    els.optSep.textContent = "";
+    for (var i = 0; i < SEP_OPTIONS.length; i++) {
+      var sep = SEP_OPTIONS[i];
+      var o = document.createElement("option");
+      o.value = sep;
+      o.textContent = t(SEP_KEYS[sep]);
+      els.optSep.appendChild(o);
+    }
+    els.optSep.value = state.out.sep;
+  }
+
+  function applyI18n() {
+    resolvedLang = resolveLang();
+    document.documentElement.lang = resolvedLang;
+    document.title = t("app.title");
+
+    each("[data-i18n]", function (el) { el.textContent = t(el.getAttribute("data-i18n")); });
+    each("[data-i18n-placeholder]", function (el) { el.setAttribute("placeholder", t(el.getAttribute("data-i18n-placeholder"))); });
+    each("[data-i18n-title]", function (el) { el.setAttribute("title", t(el.getAttribute("data-i18n-title"))); });
+    each("[data-i18n-aria]", function (el) { el.setAttribute("aria-label", t(el.getAttribute("data-i18n-aria"))); });
+
+    buildLangSelects();
+    buildSepOptions();
+    els.verText.textContent = t("settings.version", { v: VERSION });
+    refreshPageLabels();
+    syncSettingsUI();
+    renderRecords();
+    setTab(state.tab, true);
+    paint();
+  }
+
+  function refreshPageLabels() {
+    for (var i = 0; i < cells.length; i++) {
+      var label = t("heatmap.pageTitle", { n: i + 1 });
+      cells[i].title = label;
+      cells[i].setAttribute("aria-label", label);
+    }
+  }
+
+  /* ------------------------------------------------------------ page grid */
+
+  function buildGrid() {
+    els.map.textContent = "";
+    els.chips.textContent = "";
+    cells = [];
+    chips = [];
+    var mapFrag = document.createDocumentFragment();
+    var chipFrag = document.createDocumentFragment();
+    for (var p = 1; p <= state.total; p++) {
+      var cell = document.createElement("button");
+      cell.type = "button";
+      cell.setAttribute("data-page", String(p));
+      mapFrag.appendChild(cell);
+      cells.push(cell);
+
+      var chip = document.createElement("button");
+      chip.type = "button";
+      chip.setAttribute("data-page", String(p));
+      chip.textContent = String(p);
+      chipFrag.appendChild(chip);
+      chips.push(chip);
+    }
+    els.map.appendChild(mapFrag);
+    els.chips.appendChild(chipFrag);
+    refreshPageLabels();
+    syncBounds();
+    paint();
+  }
+
+  function paint() {
+    var sel = Object.create(null);
+    var pages = state.pages;
+    for (var i = 0; i < pages.length; i++) sel[pages[i]] = 1;
+
+    var oddCount = 0, evenCount = 0;
+    for (var idx = 0; idx < cells.length; idx++) {
+      var page = idx + 1;
+      var isOn = !!sel[page];
+      var isOdd = page % 2 === 1;
+      var cell = cells[idx];
+      cell.classList.toggle("is-sel", isOn);
+      cell.classList.toggle("is-odd", isOn && isOdd);
+      cell.classList.toggle("is-even", isOn && !isOdd);
+      cell.classList.toggle("is-gap", state.highlightGaps && !isOn);
+
+      var chip = chips[idx];
+      if (chip) {
+        chip.classList.toggle("is-sel", isOn);
+        chip.classList.toggle("is-odd", isOn && isOdd);
+        chip.classList.toggle("is-even", isOn && !isOdd);
+        chip.classList.toggle("is-gap", state.highlightGaps && !isOn);
+      }
+      if (isOn) { if (isOdd) oddCount++; else evenCount++; }
+    }
+
+    var cov = PP.coverage(pages, state.total);
+    els.mapCoverage.textContent = t("heatmap.coverage", { sel: cov.count, total: cov.total, pct: cov.pct });
+    els.mapBar.style.width = cov.pct + "%";
+    els.manualSelected.textContent = t("manual.selected", { n: cov.count });
+    renderOutputs(oddCount, evenCount);
+  }
+
+  function renderOutputs(oddCount, evenCount) {
+    if (oddCount == null) {
+      oddCount = 0; evenCount = 0;
+      for (var i = 0; i < state.pages.length; i++) { if (state.pages[i] % 2) oddCount++; else evenCount++; }
+    }
+    var lists = { all: state.pages, odd: [], even: [] };
+    for (var j = 0; j < state.pages.length; j++) {
+      if (state.pages[j] % 2) lists.odd.push(state.pages[j]);
+      else lists.even.push(state.pages[j]);
+    }
+    var text = PP.formatList(lists[state.tab], state.out);
+    if (els.outArea.value !== text) els.outArea.value = text;
+    var n = state.tab === "odd" ? oddCount : state.tab === "even" ? evenCount : state.pages.length;
+    var key = state.tab === "odd" ? "output.oddCount" : state.tab === "even" ? "output.evenCount" : "output.allCount";
+    els.outCount.textContent = text ? t(key, { n: n }) : t("output.empty");
+    els.copyBtn.disabled = !text;
+  }
+
+  function setTab(tab, silent) {
+    state.tab = tab;
+    ["all", "odd", "even"].forEach(function (key) {
+      var btn = document.getElementById("tab" + key.charAt(0).toUpperCase() + key.slice(1));
+      if (btn) btn.setAttribute("aria-selected", String(key === tab));
+    });
+    renderOutputs();
+    if (!silent) mutate();
+  }
+
+  /* ------------------------------------------------------------ selection ops */
+
+  function applyPages(pages) {
+    state.pages = PP.applyOp(state.pages, PP.sanitize(pages, state.total), state.action);
+    paint();
+    mutate();
+    showToast(t("toast.applied"));
+  }
+
+  function parityPagesFromState() {
+    var p = state.parity;
+    return PP.buildParity(
+      state.total,
+      p.mode,
+      p.oddOn ? { a: p.oddFrom, b: p.oddTo } : null,
+      p.evenOn ? { a: p.evenFrom, b: p.evenTo } : null
+    );
+  }
+
+  function togglePage(page, shiftKey) {
+    if (shiftKey && lastAnchor != null) {
+      var span = PP.span(lastAnchor, page);
+      var allOn = true;
+      for (var i = 0; i < span.length; i++) {
+        if (state.pages.indexOf(span[i]) < 0) { allOn = false; break; }
+      }
+      state.pages = PP.applyOp(state.pages, span, allOn ? "remove" : "add");
+    } else {
+      state.pages = PP.toggle(state.pages, page);
+    }
+    lastAnchor = page;
+    paint();
+    mutate();
+  }
+
+  /* ------------------------------------------------------------ controls */
+
+  function makeStepper(o) {
+    var input = $(o.input), minus = $(o.minus), plus = $(o.plus);
+    function commit(v) {
+      var n = PP.clampInt(v, o.min(), o.max());
+      input.value = n;
+      o.set(n);
+    }
+    on(minus, "click", function () { commit(Number(input.value) - 1); });
+    on(plus, "click", function () { commit(Number(input.value) + 1); });
+    on(input, "change", function () { commit(input.value); });
+    on(input, "keydown", function (e) {
+      if (e.key === "Enter") { commit(input.value); input.blur(); }
+    });
+    return {
+      refresh: function () { input.value = o.get(); }
+    };
+  }
+
+  function makeDual(ids, onChange) {
+    var lo = $(ids.lo), hi = $(ids.hi), fill = $(ids.fill);
+    function paintFill() {
+      var min = Number(lo.min), max = Number(lo.max);
+      var span = Math.max(1, max - min);
+      var a = Number(lo.value), b = Number(hi.value);
+      fill.style.left = ((a - min) / span) * 100 + "%";
+      fill.style.right = (100 - ((b - min) / span) * 100) + "%";
+    }
+    function handle(which) {
+      var a = Number(lo.value), b = Number(hi.value);
+      if (a > b) {
+        if (which === "lo") hi.value = a;
+        else lo.value = b;
+      }
+      paintFill();
+      onChange(Number(lo.value), Number(hi.value));
+    }
+    on(lo, "input", function () { handle("lo"); });
+    on(hi, "input", function () { handle("hi"); });
+    return {
+      bounds: function (min, max) { lo.min = hi.min = min; lo.max = hi.max = max; },
+      write: function (a, b) { lo.value = a; hi.value = b; paintFill(); },
+      paint: paintFill
+    };
+  }
+
+  function setBoxEnabled(box, enabled) {
+    if (box) box.classList.toggle("is-off", !enabled);
+  }
+
+  function syncBounds() {
+    var total = state.total;
+    state.range.from = PP.clampInt(state.range.from, 1, total);
+    state.range.to = PP.clampInt(state.range.to, state.range.from, total);
+    var p = state.parity;
+    p.oddFrom = PP.clampInt(p.oddFrom, 1, total);
+    p.oddTo = PP.clampInt(p.oddTo, p.oddFrom, total);
+    p.evenFrom = PP.clampInt(p.evenFrom, 1, total);
+    p.evenTo = PP.clampInt(p.evenTo, p.evenFrom, total);
+
+    duals.range.bounds(1, total);
+    duals.range.write(state.range.from, state.range.to);
+    duals.odd.bounds(1, total);
+    duals.odd.write(p.oddFrom, p.oddTo);
+    duals.even.bounds(1, total);
+    duals.even.write(p.evenFrom, p.evenTo);
+
+    els.totalInput.value = total;
+    els.rangeFrom.value = state.range.from;
+    els.rangeTo.value = state.range.to;
+    els.oddFrom.value = p.oddFrom;
+    els.oddTo.value = p.oddTo;
+    els.evenFrom.value = p.evenFrom;
+    els.evenTo.value = p.evenTo;
+  }
+
+  function syncSettingsUI() {
+    if (els.langSelect) els.langSelect.value = state.lang;
+    if (els.setLang) els.setLang.value = state.lang;
+    els.setMap.checked = state.showMap;
+    els.setGaps.checked = state.highlightGaps;
+    els.setPromo.checked = state.showPromo;
+    els.mapWrap.hidden = !state.showMap;
+    els.promo.hidden = !state.showPromo;
+    if (els.optCompact) els.optCompact.checked = state.out.compact;
+    if (els.optReverse) els.optReverse.checked = state.out.reverse;
+    if (els.optBatch) els.optBatch.value = state.out.batch || 0;
+    if (els.optSep) els.optSep.value = state.out.sep;
+    setPressed(els.actionSeg, "action", state.action);
+    setPressed(els.stepSeg, "step", String(state.range.step));
+    setPressed(els.paritySeg, "mode", state.parity.mode);
+    els.oddOn.checked = state.parity.oddOn;
+    els.evenOn.checked = state.parity.evenOn;
+    setBoxEnabled(els.oddBox, state.parity.oddOn);
+    setBoxEnabled(els.evenBox, state.parity.evenOn);
+  }
+
+  function setPressed(container, attr, value) {
+    if (!container) return;
+    var buttons = container.querySelectorAll("button");
+    for (var i = 0; i < buttons.length; i++) {
+      buttons[i].setAttribute("aria-pressed", String(buttons[i].getAttribute("data-" + attr) === value));
+    }
+  }
+
+  function syncAll() {
+    els.totalInput.value = state.total;
+    els.rangeFrom.value = state.range.from;
+    els.rangeTo.value = state.range.to;
+    syncSettingsUI();
+    syncBounds();
+    setTab(state.tab, true);
+  }
+
+  /* ------------------------------------------------------------ total pages */
+
+  function setTotal(n) {
+    n = PP.normalizeTotal(n);
+    els.totalInput.value = n;
+    if (n === state.total) return;
+    state.total = n;
+    state.pages = PP.sanitize(state.pages, n);
+    buildGrid();
+    mutate();
+  }
+
+  /* ------------------------------------------------------------ records */
+
+  function formatDate(ts) {
+    try {
+      return new Intl.DateTimeFormat(resolvedLang, {
+        month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false
+      }).format(new Date(ts));
+    } catch (e) {
+      return new Date(ts).toLocaleString();
+    }
+  }
+
+  function addRecord(text) {
+    var rec = { ts: Date.now(), total: state.total, pages: state.pages.slice(), tab: state.tab, text: text };
+    var list = state.records;
+    if (list.length && list[0].text === text && list[0].total === state.total) {
+      list[0].ts = rec.ts;
+    } else {
+      list.unshift(rec);
+      if (list.length > MAX_RECORDS) list.length = MAX_RECORDS;
+    }
+    save();
+    renderRecords();
+  }
+
+  function renderRecords() {
+    if (!els.recList) return;
+    els.recList.textContent = "";
+    var list = state.records;
+    els.recEmpty.hidden = list.length > 0;
+    els.recClear.disabled = !list.length;
+
+    for (var i = 0; i < list.length; i++) {
+      var rec = list[i];
+      var li = document.createElement("li");
+
+      var top = document.createElement("div");
+      top.className = "rec-top";
+
+      var time = document.createElement("span");
+      time.className = "rec-time";
+      time.textContent = formatDate(rec.ts);
+      top.appendChild(time);
+
+      var count = document.createElement("span");
+      count.className = "rec-count";
+      count.textContent = t("records.pages", { n: rec.pages.length });
+      top.appendChild(count);
+
+      var tabLabel = document.createElement("span");
+      tabLabel.textContent = t("output.tab" + rec.tab.charAt(0).toUpperCase() + rec.tab.slice(1));
+      top.appendChild(tabLabel);
+
+      var actions = document.createElement("div");
+      actions.className = "rec-actions";
+
+      var copyBtn = document.createElement("button");
+      copyBtn.type = "button";
+      copyBtn.className = "btn btn-sm";
+      copyBtn.setAttribute("data-act", "copy");
+      copyBtn.setAttribute("data-i", String(i));
+      copyBtn.textContent = t("output.copy");
+      actions.appendChild(copyBtn);
+
+      var restoreBtn = document.createElement("button");
+      restoreBtn.type = "button";
+      restoreBtn.className = "btn btn-sm";
+      restoreBtn.setAttribute("data-act", "restore");
+      restoreBtn.setAttribute("data-i", String(i));
+      restoreBtn.textContent = t("records.restore");
+      actions.appendChild(restoreBtn);
+
+      var delBtn = document.createElement("button");
+      delBtn.type = "button";
+      delBtn.className = "btn btn-sm btn-quiet btn-danger";
+      delBtn.setAttribute("data-act", "del");
+      delBtn.setAttribute("data-i", String(i));
+      delBtn.textContent = t("records.delete");
+      actions.appendChild(delBtn);
+
+      top.appendChild(actions);
+      li.appendChild(top);
+
+      var textEl = document.createElement("div");
+      textEl.className = "rec-text";
+      var preview = String(rec.text).replace(/\n/g, " ⏎ ");
+      textEl.textContent = preview.length > 120 ? preview.slice(0, 120) + "…" : preview;
+      if (!rec.text) textEl.classList.add("clip");
+      li.appendChild(textEl);
+
+      els.recList.appendChild(li);
+    }
+  }
+
+  function restoreRecord(i) {
+    var rec = state.records[i];
+    if (!rec) return;
+    state.total = PP.normalizeTotal(rec.total);
+    state.pages = PP.sanitize(rec.pages, state.total);
+    els.totalInput.value = state.total;
+    buildGrid();
+    mutate();
+    showToast(t("toast.restored"));
+  }
+
+  /* ------------------------------------------------------------ direct input */
+
+  function directErrorText(errors) {
+    var e = errors[0];
+    if (!e) return t("toast.invalid");
+    if (e.code === PP.ERR.EMPTY) return t("range.empty");
+    if (e.code === PP.ERR.OUT_OF_RANGE) return t("range.outOfRange", { total: state.total });
+    return t("range.invalid", { token: e.token || "?" });
+  }
+
+  function setErr(el, msg) {
+    el.textContent = msg;
+    el.hidden = false;
+  }
+
+  function clearErr(el) {
+    el.hidden = true;
+    el.textContent = "";
+  }
+
+  /* ------------------------------------------------------------ init */
+
+  function cacheEls() {
+    [
+      "langSelect", "settingsBtn", "settingsDlg", "settingsClose", "settingsDone",
+      "mapCard", "mapWrap", "map", "mapBar", "mapCoverage",
+      "totalMinus", "totalInput", "totalPlus", "presets",
+      "qAll", "qNone", "qInvert", "qOdd", "qEven",
+      "actionSeg", "stepSeg", "rangeFrom", "fromMinus", "fromPlus", "rangeTo", "toMinus", "toPlus",
+      "rangeDual", "rangeFill", "rangeLo", "rangeHi", "rangeApply",
+      "rangeDirect", "rangeDirectApply", "rangeDirectErr",
+      "paritySeg", "oddBox", "evenBox", "oddOn", "evenOn",
+      "oddFromMinus", "oddFrom", "oddFromPlus", "oddToMinus", "oddTo", "oddToPlus",
+      "evenFromMinus", "evenFrom", "evenFromPlus", "evenToMinus", "evenTo", "evenToPlus",
+      "oddDual", "oddFill", "oddLo", "oddHi", "evenDual", "evenFill", "evenLo", "evenHi",
+      "parityApply", "parityDirect", "parityDirectApply", "parityDirectErr",
+      "chips", "manualSelected",
+      "outTabs", "outArea", "outCount", "copyBtn", "shareBtn",
+      "optCompact", "optReverse", "optSep", "optBatch",
+      "recList", "recEmpty", "recClear", "promo",
+      "setLang", "setMap", "setGaps", "setPromo", "clearData", "verText", "toast"
+    ].forEach(function (id) { els[id] = $(id); });
+  }
+
+  function bindTotal() {
+    makeStepper({
+      input: "totalInput", minus: "totalMinus", plus: "totalPlus",
+      min: function () { return 1; },
+      max: function () { return PP.MAX_PAGES; },
+      get: function () { return state.total; },
+      set: function (n) { setTotal(n); }
+    });
+    on(els.presets, "click", function (e) {
+      var btn = e.target.closest ? e.target.closest("button[data-preset]") : null;
+      if (!btn) return;
+      setTotal(Number(btn.getAttribute("data-preset")));
+    });
+  }
+
+  function bindRange() {
+    makeStepper({
+      input: "rangeFrom", minus: "fromMinus", plus: "fromPlus",
+      min: function () { return 1; },
+      max: function () { return state.range.to; },
+      get: function () { return state.range.from; },
+      set: function (n) {
+        state.range.from = n;
+        duals.range.write(n, state.range.to);
+        mutate();
+      }
+    });
+    makeStepper({
+      input: "rangeTo", minus: "toMinus", plus: "toPlus",
+      min: function () { return state.range.from; },
+      max: function () { return state.total; },
+      get: function () { return state.range.to; },
+      set: function (n) {
+        state.range.to = n;
+        duals.range.write(state.range.from, n);
+        mutate();
+      }
+    });
+
+    on(els.rangeApply, "click", function () {
+      applyPages(PP.range(state.range.from, state.range.to, state.range.step));
+    });
+
+    on(els.actionSeg, "click", function (e) {
+      var btn = e.target.closest ? e.target.closest("button[data-action]") : null;
+      if (!btn) return;
+      state.action = btn.getAttribute("data-action");
+      setPressed(els.actionSeg, "action", state.action);
+      mutate();
+    });
+
+    on(els.stepSeg, "click", function (e) {
+      var btn = e.target.closest ? e.target.closest("button[data-step]") : null;
+      if (!btn) return;
+      state.range.step = Number(btn.getAttribute("data-step")) === 2 ? 2 : 1;
+      setPressed(els.stepSeg, "step", String(state.range.step));
+      mutate();
+    });
+
+    on(els.rangeDirectApply, "click", function () {
+      var parsed = PP.parsePages(els.rangeDirect.value, state.total);
+      if (parsed.errors.length) {
+        setErr(els.rangeDirectErr, directErrorText(parsed.errors));
+        showToast(t("toast.invalid"));
+        return;
+      }
+      clearErr(els.rangeDirectErr);
+      applyPages(parsed.pages);
+    });
+
+    on(els.rangeDirect, "keydown", function (e) {
+      if (e.key === "Enter") els.rangeDirectApply.click();
+    });
+  }
+
+  function bindParity() {
+    on(els.paritySeg, "click", function (e) {
+      var btn = e.target.closest ? e.target.closest("button[data-mode]") : null;
+      if (!btn) return;
+      state.parity.mode = btn.getAttribute("data-mode");
+      setPressed(els.paritySeg, "mode", state.parity.mode);
+      mutate();
+    });
+
+    on(els.oddOn, "change", function () {
+      state.parity.oddOn = els.oddOn.checked;
+      setBoxEnabled(els.oddBox, state.parity.oddOn);
+      mutate();
+    });
+    on(els.evenOn, "change", function () {
+      state.parity.evenOn = els.evenOn.checked;
+      setBoxEnabled(els.evenBox, state.parity.evenOn);
+      mutate();
+    });
+
+    makeStepper({
+      input: "oddFrom", minus: "oddFromMinus", plus: "oddFromPlus",
+      min: function () { return 1; }, max: function () { return state.parity.oddTo; },
+      get: function () { return state.parity.oddFrom; },
+      set: function (n) { state.parity.oddFrom = n; duals.odd.write(n, state.parity.oddTo); mutate(); }
+    });
+    makeStepper({
+      input: "oddTo", minus: "oddToMinus", plus: "oddToPlus",
+      min: function () { return state.parity.oddFrom; }, max: function () { return state.total; },
+      get: function () { return state.parity.oddTo; },
+      set: function (n) { state.parity.oddTo = n; duals.odd.write(state.parity.oddFrom, n); mutate(); }
+    });
+    makeStepper({
+      input: "evenFrom", minus: "evenFromMinus", plus: "evenFromPlus",
+      min: function () { return 1; }, max: function () { return state.parity.evenTo; },
+      get: function () { return state.parity.evenFrom; },
+      set: function (n) { state.parity.evenFrom = n; duals.even.write(n, state.parity.evenTo); mutate(); }
+    });
+    makeStepper({
+      input: "evenTo", minus: "evenToMinus", plus: "evenToPlus",
+      min: function () { return state.parity.evenFrom; }, max: function () { return state.total; },
+      get: function () { return state.parity.evenTo; },
+      set: function (n) { state.parity.evenTo = n; duals.even.write(state.parity.evenFrom, n); mutate(); }
+    });
+
+    on(els.parityApply, "click", function () {
+      applyPages(parityPagesFromState());
+    });
+
+    on(els.parityDirectApply, "click", function () {
+      var parsed = PP.parseParity(els.parityDirect.value, state.total);
+      if (parsed.errors.length) {
+        setErr(els.parityDirectErr, directErrorText(parsed.errors));
+        showToast(t("toast.invalid"));
+        return;
+      }
+      clearErr(els.parityDirectErr);
+      state.parity.mode = parsed.mode;
+      if (parsed.odd) {
+        state.parity.oddOn = true;
+        state.parity.oddFrom = parsed.odd.a;
+        state.parity.oddTo = parsed.odd.b;
+      }
+      if (parsed.even) {
+        state.parity.evenOn = true;
+        state.parity.evenFrom = parsed.even.a;
+        state.parity.evenTo = parsed.even.b;
+      }
+      syncSettingsUI();
+      syncBounds();
+      setBoxEnabled(els.oddBox, state.parity.oddOn);
+      setBoxEnabled(els.evenBox, state.parity.evenOn);
+      applyPages(parityPagesFromState());
+    });
+
+    on(els.parityDirect, "keydown", function (e) {
+      if (e.key === "Enter") els.parityDirectApply.click();
+    });
+  }
+
+  function bindDuals() {
+    duals.range = makeDual({ lo: "rangeLo", hi: "rangeHi", fill: "rangeFill" }, function (a, b) {
+      state.range.from = a;
+      state.range.to = b;
+      els.rangeFrom.value = a;
+      els.rangeTo.value = b;
+      mutate();
+    });
+    duals.odd = makeDual({ lo: "oddLo", hi: "oddHi", fill: "oddFill" }, function (a, b) {
+      state.parity.oddFrom = a;
+      state.parity.oddTo = b;
+      els.oddFrom.value = a;
+      els.oddTo.value = b;
+      mutate();
+    });
+    duals.even = makeDual({ lo: "evenLo", hi: "evenHi", fill: "evenFill" }, function (a, b) {
+      state.parity.evenFrom = a;
+      state.parity.evenTo = b;
+      els.evenFrom.value = a;
+      els.evenTo.value = b;
+      mutate();
+    });
+  }
+
+  function bindQuick() {
+    function run(fn) { state.pages = fn(); paint(); mutate(); }
+    on(els.qAll, "click", function () { run(function () { return PP.allPages(state.total); }); });
+    on(els.qNone, "click", function () { run(function () { return []; }); showToast(t("toast.cleared")); });
+    on(els.qInvert, "click", function () { run(function () { return PP.invert(state.pages, state.total); }); });
+    on(els.qOdd, "click", function () { run(function () { return PP.parityRange(1, state.total, "odd"); }); });
+    on(els.qEven, "click", function () { run(function () { return PP.parityRange(1, state.total, "even"); }); });
+  }
+
+  function bindGridClicks() {
+    function handler(e) {
+      var btn = e.target.closest ? e.target.closest("button[data-page]") : null;
+      if (!btn) return;
+      togglePage(Number(btn.getAttribute("data-page")), e.shiftKey);
+    }
+    on(els.map, "click", handler);
+    on(els.chips, "click", handler);
+  }
+
+  function bindOutput() {
+    on(els.outTabs, "click", function (e) {
+      var btn = e.target.closest ? e.target.closest("button[data-tab]") : null;
+      if (!btn) return;
+      setTab(btn.getAttribute("data-tab"));
+    });
+
+    on(els.copyBtn, "click", function () {
+      var text = els.outArea.value;
+      if (!text) { showToast(t("toast.nothing")); return; }
+      copyText(text).then(function (ok) {
+        if (ok) {
+          addRecord(text);
+          showToast(t("toast.copied"));
+        } else {
+          els.outArea.focus();
+          els.outArea.select();
+          addRecord(text);
+          showToast(t("toast.copyManual"));
+        }
+      });
+    });
+
+    on(els.shareBtn, "click", function () {
+      var base = location.href.split("#")[0];
+      var link = base + "#" + PP.encodeState(state.total, state.pages);
+      copyText(link).then(function (ok) {
+        if (ok) showToast(t("toast.linkCopied"));
+        else window.prompt(t("toast.linkCopied"), link);
+      });
+    });
+
+    on(els.optCompact, "change", function () {
+      state.out.compact = els.optCompact.checked;
+      renderOutputs();
+      mutate();
+    });
+    on(els.optReverse, "change", function () {
+      state.out.reverse = els.optReverse.checked;
+      renderOutputs();
+      mutate();
+    });
+    on(els.optSep, "change", function () {
+      state.out.sep = els.optSep.value;
+      renderOutputs();
+      mutate();
+    });
+    on(els.optBatch, "change", function () {
+      state.out.batch = PP.clampInt(els.optBatch.value, 0, PP.MAX_PAGES);
+      els.optBatch.value = state.out.batch;
+      renderOutputs();
+      mutate();
+    });
+    on(els.optBatch, "keydown", function (e) {
+      if (e.key === "Enter") els.optBatch.blur();
+    });
+  }
+
+  function bindRecords() {
+    on(els.recList, "click", function (e) {
+      var btn = e.target.closest ? e.target.closest("button[data-act]") : null;
+      if (!btn) return;
+      var i = Number(btn.getAttribute("data-i"));
+      var rec = state.records[i];
+      if (!rec) return;
+      var act = btn.getAttribute("data-act");
+      if (act === "copy") {
+        copyText(rec.text).then(function (ok) {
+          showToast(ok ? t("toast.copied") : t("toast.invalid"));
+        });
+      } else if (act === "restore") {
+        restoreRecord(i);
+      } else if (act === "del") {
+        state.records.splice(i, 1);
+        save();
+        renderRecords();
+        showToast(t("toast.deleted"));
+      }
+    });
+
+    on(els.recClear, "click", function () {
+      if (!state.records.length) return;
+      if (!window.confirm(t("records.clearConfirm"))) return;
+      state.records = [];
+      save();
+      renderRecords();
+    });
+  }
+
+  function bindSettings() {
+    function openDialog() {
+      syncSettingsUI();
+      if (typeof els.settingsDlg.showModal === "function") els.settingsDlg.showModal();
+      else els.settingsDlg.setAttribute("open", "");
+    }
+    function closeDialog() {
+      if (typeof els.settingsDlg.close === "function") els.settingsDlg.close();
+      else els.settingsDlg.removeAttribute("open");
+    }
+
+    on(els.settingsBtn, "click", openDialog);
+    on(els.settingsClose, "click", closeDialog);
+    on(els.settingsDone, "click", closeDialog);
+    on(els.settingsDlg, "click", function (e) {
+      if (e.target === els.settingsDlg) closeDialog();
+    });
+
+    function setLang(value) {
+      state.lang = value;
+      resolvedLang = resolveLang();
+      save();
+      applyI18n();
+    }
+    on(els.langSelect, "change", function () { setLang(els.langSelect.value); });
+    on(els.setLang, "change", function () { setLang(els.setLang.value); });
+
+    on(els.setMap, "change", function () {
+      state.showMap = els.setMap.checked;
+      els.mapWrap.hidden = !state.showMap;
+      save();
+    });
+    on(els.setGaps, "change", function () {
+      state.highlightGaps = els.setGaps.checked;
+      paint();
+      save();
+    });
+    on(els.setPromo, "change", function () {
+      state.showPromo = els.setPromo.checked;
+      els.promo.hidden = !state.showPromo;
+      save();
+    });
+
+    on(els.clearData, "click", function () {
+      if (!window.confirm(t("settings.clearDataConfirm"))) return;
+      try { localStorage.removeItem(STORE_KEY); } catch (e) { }
+      state = defaults();
+      resolvedLang = resolveLang();
+      els.totalInput.value = state.total;
+      buildGrid();
+      applyI18n();
+      syncAll();
+      showToast(t("settings.dataCleared"));
+    });
+  }
+
+  function bindKeys() {
+    document.addEventListener("keydown", function (e) {
+      if (e.key !== "Escape" || !els.settingsDlg || !els.settingsDlg.open) return;
+      if (typeof els.settingsDlg.close === "function") els.settingsDlg.close();
+    });
+  }
+
+  function init() {
+    cacheEls();
+    state = load();
+    resolvedLang = resolveLang();
+    bindDuals();
+    bindTotal();
+    bindRange();
+    bindParity();
+    bindQuick();
+    bindGridClicks();
+    bindOutput();
+    bindRecords();
+    bindSettings();
+    bindKeys();
+    buildGrid();
+    applyI18n();
+    syncAll();
+    paint();
+    save();
+  }
+
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
+})();
+
+</script>
+</body>
+</html>

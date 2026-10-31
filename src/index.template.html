@@ -1,0 +1,358 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>PagePicker — print page-range builder</title>
+<meta name="description" content="PagePicker builds the page range for the print dialog — odd/even sides for manual duplex, ranges, heat-map overview, copy button. Single offline HTML file, seven languages.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="PagePicker — print page-range builder">
+<meta property="og:description" content="Odd/even page ranges for the print dialog. Runs entirely offline in one HTML file.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%232563eb'/%3E%3Cg fill='%23fff'%3E%3Crect x='13' y='13' width='11' height='11' rx='2.5'/%3E%3Crect x='27' y='13' width='11' height='11' rx='2.5' opacity='.55'/%3E%3Crect x='41' y='13' width='11' height='11' rx='2.5'/%3E%3Crect x='13' y='27' width='11' height='11' rx='2.5' opacity='.55'/%3E%3Crect x='27' y='27' width='11' height='11' rx='2.5'/%3E%3Crect x='41' y='27' width='11' height='11' rx='2.5' opacity='.55'/%3E%3Crect x='13' y='41' width='11' height='11' rx='2.5'/%3E%3Crect x='27' y='41' width='11' height='11' rx='2.5' opacity='.55'/%3E%3Crect x='41' y='41' width='11' height='11' rx='2.5'/%3E%3C/g%3E%3C/svg%3E">
+<style>
+@@STYLES@@
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-in">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+      </div>
+      <div class="brand-txt">
+        <div class="brand-name" data-i18n="app.name">PagePicker</div>
+        <div class="brand-sub" data-i18n="app.tagline">Print-dialog page ranges, built for printers without a duplexer</div>
+      </div>
+    </div>
+    <div class="top-actions">
+      <label class="sr-only" for="langSelect" data-i18n="header.language">Language</label>
+      <select id="langSelect" class="lang-select"></select>
+      <button id="settingsBtn" class="icon-btn" type="button" data-i18n-title="header.settings" data-i18n-aria="header.settings" title="Settings" aria-label="Settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.1"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.03 1.56V21a2 2 0 1 1-4 0v-.09A1.7 1.7 0 0 0 8.94 19.3a1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.7 15a1.7 1.7 0 0 0-1.56-1.03H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.7 8.94a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.7a1.7 1.7 0 0 0 1.03-1.56V3a2 2 0 1 1 4 0v.09A1.7 1.7 0 0 0 15.06 4.7a1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.7 1.7 0 0 0 19.3 9v.09a1.7 1.7 0 0 0 1.56 1.03H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.51.88z"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="card" id="mapCard">
+    <div class="total-row">
+      <span class="total-label" data-i18n="total.label">Total pages</span>
+      <div class="stepper" id="totalStepper">
+        <button type="button" id="totalMinus" data-i18n-aria="total.decrease" aria-label="One page fewer">−</button>
+        <input id="totalInput" type="number" min="1" max="2000" step="1" value="100" inputmode="numeric" data-i18n-aria="total.label" aria-label="Total pages">
+        <button type="button" id="totalPlus" data-i18n-aria="total.increase" aria-label="One page more">+</button>
+      </div>
+      <div class="presets" id="presets" role="group">
+        <button type="button" data-preset="50">50</button>
+        <button type="button" data-preset="100">100</button>
+        <button type="button" data-preset="200">200</button>
+      </div>
+      <div class="quick">
+        <button type="button" class="btn btn-sm" id="qAll" data-i18n="quick.selectAll">All</button>
+        <button type="button" class="btn btn-sm" id="qNone" data-i18n="quick.clear">None</button>
+        <button type="button" class="btn btn-sm" id="qInvert" data-i18n="quick.invert">Invert</button>
+        <button type="button" class="btn btn-sm" id="qOdd" data-i18n="quick.odds">Odd only</button>
+        <button type="button" class="btn btn-sm" id="qEven" data-i18n="quick.evens">Even only</button>
+      </div>
+    </div>
+    <div class="map-wrap" id="mapWrap">
+      <div class="legend">
+        <span><i class="lg-un"></i><span data-i18n="heatmap.legendUnselected">Not printed</span></span>
+        <span><i class="lg-odd"></i><span data-i18n="heatmap.legendOdd">Odd side</span></span>
+        <span><i class="lg-even"></i><span data-i18n="heatmap.legendEven">Even side</span></span>
+        <span class="legend-note" data-i18n="heatmap.clickHint">Click a cell to toggle that page</span>
+      </div>
+      <div class="map" id="map" role="group" data-i18n-aria="a11y.map" aria-label="Page overview map"></div>
+      <div class="progress-row">
+        <div class="progress"><i id="mapBar"></i></div>
+        <span class="coverage" id="mapCoverage"></span>
+      </div>
+    </div>
+  </section>
+
+  <div class="cols">
+    <div>
+
+      <section class="card">
+        <div class="card-head">
+          <h2 data-i18n="range.title">A run of pages</h2>
+          <p class="card-desc" data-i18n="range.desc">Pick a span, then apply it.</p>
+        </div>
+        <div class="row">
+          <span class="row-label" data-i18n="action.label">When applying</span>
+          <div class="seg" id="actionSeg" role="group">
+            <button type="button" data-action="add" aria-pressed="true" data-i18n="action.add">Add</button>
+            <button type="button" data-action="replace" aria-pressed="false" data-i18n="action.replace">Replace</button>
+            <button type="button" data-action="remove" aria-pressed="false" data-i18n="action.remove">Remove</button>
+          </div>
+        </div>
+        <div class="row" style="margin-top:12px">
+          <div class="field">
+            <label for="rangeFrom" data-i18n="range.from">From</label>
+            <div class="stepper tiny" id="fromStepper">
+              <button type="button" id="fromMinus" data-i18n-aria="a11y.decrease" aria-label="Decrease">−</button>
+              <input id="rangeFrom" type="number" min="1" max="2000" step="1" value="1" inputmode="numeric" aria-label="From">
+              <button type="button" id="fromPlus" data-i18n-aria="a11y.increase" aria-label="Increase">+</button>
+            </div>
+          </div>
+          <div class="field">
+            <label for="rangeTo" data-i18n="range.to">To</label>
+            <div class="stepper tiny" id="toStepper">
+              <button type="button" id="toMinus" data-i18n-aria="a11y.decrease" aria-label="Decrease">−</button>
+              <input id="rangeTo" type="number" min="1" max="2000" step="1" value="100" inputmode="numeric" aria-label="To">
+              <button type="button" id="toPlus" data-i18n-aria="a11y.increase" aria-label="Increase">+</button>
+            </div>
+          </div>
+          <div class="field">
+            <span class="row-label" data-i18n="range.step">Step</span>
+            <div class="seg" id="stepSeg" role="group">
+              <button type="button" data-step="1" aria-pressed="true" data-i18n="range.step1">Every page</button>
+              <button type="button" data-step="2" aria-pressed="false" data-i18n="range.step2">Every second page</button>
+            </div>
+          </div>
+        </div>
+        <div class="dual" id="rangeDual">
+          <div class="dual-track"><div class="dual-fill" id="rangeFill"></div></div>
+          <input type="range" class="lo" id="rangeLo" min="1" max="2000" value="1" aria-label="Range start">
+          <input type="range" class="hi" id="rangeHi" min="1" max="2000" value="100" aria-label="Range end">
+        </div>
+        <p class="hint" data-i18n="range.sliderHint">Drag either handle to move the span</p>
+        <div class="row" style="margin-top:12px">
+          <button type="button" class="btn btn-primary" id="rangeApply" data-i18n="common.apply">Apply</button>
+        </div>
+        <div class="direct-box">
+          <div class="direct-title" data-i18n="range.direct">Or type it</div>
+          <div class="direct-row">
+            <input id="rangeDirect" class="text-input" type="text" autocomplete="off" spellcheck="false" placeholder="e.g. 1-5, 8, 10-13" data-i18n-placeholder="range.directPlaceholder">
+            <button type="button" class="btn" id="rangeDirectApply" data-i18n="common.apply">Apply</button>
+          </div>
+          <p class="hint" data-i18n="range.directHint">Commas, spaces or 、 separate items — 1-5, 8, 10-13, odd, even, 1-99/2</p>
+          <p class="hint err" id="rangeDirectErr" hidden></p>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-head">
+          <h2 data-i18n="parity.title">Odd and even</h2>
+          <p class="card-desc" data-i18n="parity.desc">Print one side, flip the stack, print the other.</p>
+        </div>
+        <div class="row">
+          <span class="row-label" data-i18n="parity.mode">Keep</span>
+          <div class="seg" id="paritySeg" role="group">
+            <button type="button" data-mode="all" aria-pressed="true" data-i18n="parity.modeAll">Both sides</button>
+            <button type="button" data-mode="odd" aria-pressed="false" data-i18n="parity.modeOdd">Odd only</button>
+            <button type="button" data-mode="even" aria-pressed="false" data-i18n="parity.modeEven">Even only</button>
+          </div>
+        </div>
+        <div class="limit-box" style="margin-top:12px" id="oddBox">
+          <div class="limit-head">
+            <label class="check" for="oddOn"><input type="checkbox" id="oddOn"><span data-i18n="parity.oddLimit">Odd pages from … to …</span></label>
+            <span class="row-label" style="margin-left:auto" data-i18n="range.from">From</span>
+            <div class="stepper tiny" id="oddFromStepper">
+              <button type="button" id="oddFromMinus" data-i18n-aria="a11y.decrease" aria-label="Decrease">−</button>
+              <input id="oddFrom" type="number" min="1" max="2000" step="2" value="1" inputmode="numeric" aria-label="Odd pages from">
+              <button type="button" id="oddFromPlus" data-i18n-aria="a11y.increase" aria-label="Increase">+</button>
+            </div>
+            <span class="row-label" data-i18n="range.to">To</span>
+            <div class="stepper tiny" id="oddToStepper">
+              <button type="button" id="oddToMinus" data-i18n-aria="a11y.decrease" aria-label="Decrease">−</button>
+              <input id="oddTo" type="number" min="1" max="2000" step="2" value="99" inputmode="numeric" aria-label="Odd pages to">
+              <button type="button" id="oddToPlus" data-i18n-aria="a11y.increase" aria-label="Increase">+</button>
+            </div>
+          </div>
+          <div class="dual mini" id="oddDual">
+            <div class="dual-track"><div class="dual-fill" id="oddFill"></div></div>
+            <input type="range" class="lo" id="oddLo" min="1" max="2000" value="1" aria-label="Odd range start">
+            <input type="range" class="hi" id="oddHi" min="1" max="2000" value="99" aria-label="Odd range end">
+          </div>
+        </div>
+        <div class="limit-box" id="evenBox">
+          <div class="limit-head">
+            <label class="check" for="evenOn"><input type="checkbox" id="evenOn"><span data-i18n="parity.evenLimit">Even pages from … to …</span></label>
+            <span class="row-label" style="margin-left:auto" data-i18n="range.from">From</span>
+            <div class="stepper tiny" id="evenFromStepper">
+              <button type="button" id="evenFromMinus" data-i18n-aria="a11y.decrease" aria-label="Decrease">−</button>
+              <input id="evenFrom" type="number" min="2" max="2000" step="2" value="2" inputmode="numeric" aria-label="Even pages from">
+              <button type="button" id="evenFromPlus" data-i18n-aria="a11y.increase" aria-label="Increase">+</button>
+            </div>
+            <span class="row-label" data-i18n="range.to">To</span>
+            <div class="stepper tiny" id="evenToStepper">
+              <button type="button" id="evenToMinus" data-i18n-aria="a11y.decrease" aria-label="Decrease">−</button>
+              <input id="evenTo" type="number" min="2" max="2000" step="2" value="100" inputmode="numeric" aria-label="Even pages to">
+              <button type="button" id="evenToPlus" data-i18n-aria="a11y.increase" aria-label="Increase">+</button>
+            </div>
+          </div>
+          <div class="dual mini" id="evenDual">
+            <div class="dual-track"><div class="dual-fill" id="evenFill"></div></div>
+            <input type="range" class="lo" id="evenLo" min="1" max="2000" value="2" aria-label="Even range start">
+            <input type="range" class="hi" id="evenHi" min="1" max="2000" value="100" aria-label="Even range end">
+          </div>
+        </div>
+        <div class="row" style="margin-top:12px">
+          <button type="button" class="btn btn-primary" id="parityApply" data-i18n="common.apply">Apply</button>
+        </div>
+        <div class="direct-box">
+          <div class="direct-title" data-i18n="parity.direct">Or type it</div>
+          <div class="direct-row">
+            <input id="parityDirect" class="text-input" type="text" autocomplete="off" spellcheck="false" placeholder="e.g. odd:1-99; even:2-100" data-i18n-placeholder="parity.directPlaceholder">
+            <button type="button" class="btn" id="parityDirectApply" data-i18n="common.apply">Apply</button>
+          </div>
+          <p class="hint" data-i18n="parity.directHint">odd:1-99; even:2-100 — the same two sides as the controls above</p>
+          <p class="hint err" id="parityDirectErr" hidden></p>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-head">
+          <h2 data-i18n="manual.title">Pick them one by one</h2>
+          <p class="card-desc" data-i18n="manual.hint">Click to toggle · Shift-click to fill a span</p>
+          <div class="card-head-actions"><span class="coverage" id="manualSelected"></span></div>
+        </div>
+        <div class="chips" id="chips" role="group" data-i18n-aria="a11y.grid" aria-label="Page grid"></div>
+      </section>
+
+    </div>
+    <div>
+
+      <section class="card">
+        <div class="card-head">
+          <h2 data-i18n="output.title">For the print dialog</h2>
+          <p class="card-desc" data-i18n="output.desc">Paste into “Pages / Page range”.</p>
+        </div>
+        <div class="tabs" role="tablist" id="outTabs">
+          <button type="button" role="tab" id="tabAll" data-tab="all" aria-selected="true" data-i18n="output.tabAll">All</button>
+          <button type="button" role="tab" id="tabOdd" data-tab="odd" aria-selected="false" data-i18n="output.tabOdd">Odd</button>
+          <button type="button" role="tab" id="tabEven" data-tab="even" aria-selected="false" data-i18n="output.tabEven">Even</button>
+        </div>
+        <div class="output-panel" role="tabpanel">
+          <div class="output-area-row">
+            <textarea id="outArea" class="output-area" readonly rows="3" spellcheck="false" placeholder="Nothing selected yet" data-i18n-placeholder="output.empty" data-i18n-aria="a11y.output" aria-label="Page range for the print dialog"></textarea>
+          </div>
+          <div class="output-meta">
+            <span id="outCount"></span>
+            <span class="spacer"></span>
+            <button type="button" class="btn btn-sm" id="shareBtn" data-i18n="output.share">Copy share link</button>
+            <button type="button" class="btn btn-sm btn-primary" id="copyBtn" data-i18n="output.copy">Copy</button>
+          </div>
+        </div>
+        <div class="opts">
+          <div class="opts-title" data-i18n="output.options">Format</div>
+          <div class="opt-row">
+            <label class="check"><input type="checkbox" id="optCompact" checked><span data-i18n="output.compact">Merge consecutive pages</span></label>
+            <label class="check"><input type="checkbox" id="optReverse"><span data-i18n="output.reverse">Reverse order</span></label>
+          </div>
+          <div class="opt-row">
+            <label for="optSep" data-i18n="output.separator">Separator</label>
+            <select id="optSep" class="select"></select>
+            <label for="optBatch" data-i18n="output.batch">Split into batches of</label>
+            <input id="optBatch" class="batch-input" type="number" min="0" max="2000" step="1" value="0" inputmode="numeric" data-i18n-title="output.batchOff" title="no batching">
+            <span data-i18n="common.pages">pages</span>
+          </div>
+        </div>
+        <p class="hint" style="margin-top:10px" data-i18n="output.shareHint">The link carries the page count and the selection.</p>
+      </section>
+
+      <section class="card">
+        <div class="card-head">
+          <h2 data-i18n="records.title">History</h2>
+          <p class="card-desc" data-i18n="records.desc">Everything you copy is kept here.</p>
+          <div class="card-head-actions">
+            <button type="button" class="btn btn-sm btn-quiet btn-danger" id="recClear" data-i18n="records.clear">Clear all</button>
+          </div>
+        </div>
+        <ul class="records" id="recList"></ul>
+        <p class="records-empty" id="recEmpty" data-i18n="records.empty">Nothing yet. Copy an output and it will show up here.</p>
+        <p class="rec-note" data-i18n="records.note">Kept in this browser only — never uploaded.</p>
+      </section>
+
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div class="promo" id="promo">
+    <div class="promo-base">
+      <span data-i18n="footer.local">Runs entirely on this device — nothing is sent anywhere.</span>
+      <span class="dot">·</span>
+      <a href="https://github.com/w32394045-dotcom/pagepicker" target="_blank" rel="noopener noreferrer">github.com/w32394045-dotcom/pagepicker</a>
+      <span class="dot">·</span>
+      <strong data-i18n="footer.license">Open source · MIT</strong>
+    </div>
+    <div class="promo-projects">
+      <div class="ad">
+        <div class="ad-badge img" aria-hidden="true">img</div>
+        <div class="ad-body">
+          <div class="ad-name"><a href="https://imgprint.xszx.cc.cd/" target="_blank" rel="noopener noreferrer" data-i18n="ad.imgprint.name">imgprint</a></div>
+          <p class="ad-desc" data-i18n="ad.imgprint.desc">Print several photos per sheet: paper size, margins, 1–4 images a page, DPI and colour-space warnings.</p>
+          <a class="ad-cta" href="https://github.com/w32394045-dotcom/imgprint" target="_blank" rel="noopener noreferrer" data-i18n="ad.imgprint.cta">Open imgprint</a>
+        </div>
+      </div>
+      <div class="ad">
+        <div class="ad-badge md" aria-hidden="true">md</div>
+        <div class="ad-body">
+          <div class="ad-name"><a href="https://md2pdf.xszx.cc.cd/" target="_blank" rel="noopener noreferrer" data-i18n="ad.md2pdf.name">md2pdf</a></div>
+          <p class="ad-desc" data-i18n="ad.md2pdf.desc">Turn Markdown into a vector-text PDF: LaTeX maths, chemistry, inline SVG, print-ready page layout.</p>
+          <a class="ad-cta" href="https://github.com/w32394045-dotcom/md2pdf" target="_blank" rel="noopener noreferrer" data-i18n="ad.md2pdf.cta">Open md2pdf</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<dialog id="settingsDlg">
+  <div class="dlg-head">
+    <h2 data-i18n="settings.title">Settings</h2>
+    <button type="button" class="icon-btn" id="settingsClose" style="margin-left:auto" data-i18n-aria="common.close" aria-label="Close">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+  </div>
+  <div class="dlg-body">
+    <div class="set-group">
+      <div class="set-title" data-i18n="settings.language">Language</div>
+      <div class="set-row">
+        <label for="setLang" data-i18n="settings.language">Language</label>
+        <select id="setLang" class="select"></select>
+      </div>
+      <p class="set-hint" data-i18n="settings.languageHint">Detected from the browser on first visit.</p>
+    </div>
+    <div class="set-group">
+      <div class="set-title" data-i18n="settings.interface">Interface</div>
+      <div class="set-row"><label for="setMap" data-i18n="settings.showMap">Show the overview map at the top</label><input type="checkbox" id="setMap" checked></div>
+      <div class="set-row"><label for="setGaps" data-i18n="settings.highlightGaps">Flag pages that are not selected</label><input type="checkbox" id="setGaps"></div>
+      <div class="set-row"><label for="setPromo" data-i18n="settings.showPromo">Show the footer credits and related projects</label><input type="checkbox" id="setPromo" checked></div>
+    </div>
+    <div class="set-group">
+      <div class="set-title" data-i18n="settings.data">Data</div>
+      <div class="set-row"><button type="button" class="btn btn-danger" id="clearData" data-i18n="settings.clearData">Clear saved data</button></div>
+    </div>
+    <div class="set-group">
+      <div class="set-title" data-i18n="settings.about">About</div>
+      <div class="about-line">
+        <span data-i18n="app.name">PagePicker</span><span>·</span><span id="verText"></span><span>·</span><span data-i18n="settings.license">Open source · MIT</span>
+      </div>
+      <p class="set-hint" data-i18n="settings.offline">Runs entirely on this device. No network requests.</p>
+      <p class="set-hint" data-i18n="settings.shortcutHint">Shift-click a page fills the span · Esc closes dialogs</p>
+    </div>
+  </div>
+  <div class="dlg-foot">
+    <button type="button" class="btn" id="settingsDone" data-i18n="common.close">Close</button>
+  </div>
+</dialog>
+
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+@@CORE@@
+</script>
+<script>
+@@I18N@@
+</script>
+<script>
+@@APP@@
+</script>
+</body>
+</html>
