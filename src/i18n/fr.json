@@ -3,11 +3,9 @@
   "app.name": "PagePicker",
   "app.tagline": "Des plages de pages pour la boîte d’impression, pensées pour les imprimantes sans recto-verso",
   "app.short": "Générateur de plages de pages pour la boîte d’impression",
-
   "header.language": "Langue",
   "header.settings": "Réglages",
   "header.github": "Code source sur GitHub",
-
   "heatmap.title": "Toutes les pages en un coup d’œil",
   "heatmap.legendUnselected": "Non imprimé",
   "heatmap.legendOdd": "Côté impair",
@@ -17,23 +15,19 @@
   "heatmap.pageTitle": "Page {n}",
   "heatmap.show": "Afficher la carte d’ensemble",
   "heatmap.highlightGaps": "Signaler les pages laissées de côté",
-
   "quick.selectAll": "Tout",
   "quick.clear": "Aucun",
   "quick.invert": "Inverser",
   "quick.odds": "Uniquement impaires",
   "quick.evens": "Uniquement paires",
-
   "total.label": "Total de pages",
   "total.decrease": "Une page de moins",
   "total.increase": "Une page de plus",
   "total.hint": "1–2000",
-
   "action.label": "À l’application",
   "action.add": "Ajouter",
   "action.replace": "Remplacer",
   "action.remove": "Retirer",
-
   "range.title": "Une suite de pages",
   "range.desc": "Choisissez une plage, puis appliquez-la.",
   "range.from": "De",
@@ -47,7 +41,6 @@
   "range.invalid": "Non compris : {token}",
   "range.empty": "Saisissez au moins un numéro de page",
   "range.outOfRange": "Les pages vont de 1 à {total}",
-
   "parity.title": "Pages impaires et paires",
   "parity.desc": "Imprimez une face, retournez la pile, imprimez l’autre.",
   "parity.mode": "Conserver",
@@ -60,11 +53,9 @@
   "parity.limitHint": "Décochez pour utiliser tout le document",
   "parity.direct": "Ou saisissez-le",
   "parity.directHint": "odd:1-99; even:2-100 — les deux mêmes côtés que les contrôles ci-dessus",
-
   "manual.title": "Sélectionner une par une",
   "manual.hint": "Cliquez pour basculer · Shift+clic pour remplir une plage",
   "manual.selected": "{n} pages sélectionnées",
-
   "output.title": "Pour la boîte d’impression",
   "output.desc": "À coller dans « Pages / Plage de pages ».",
   "output.tabAll": "Tout",
@@ -89,7 +80,6 @@
   "output.batchOff": "pas de découpage",
   "output.share": "Copier le lien de partage",
   "output.shareHint": "Le lien contient le nombre de pages et la sélection.",
-
   "records.title": "Historique",
   "records.desc": "Tout ce que vous copiez est conservé ici.",
   "records.empty": "Rien pour l’instant. Copiez un résultat et il apparaîtra ici.",
@@ -99,7 +89,6 @@
   "records.clearConfirm": "Supprimer tous les enregistrements ?",
   "records.pages": "{n} pages",
   "records.note": "Conservé uniquement dans ce navigateur — jamais envoyé.",
-
   "settings.title": "Réglages",
   "settings.language": "Langue",
   "settings.languageAuto": "Automatique",
@@ -119,25 +108,21 @@
   "settings.license": "Logiciel libre · MIT",
   "settings.shortcuts": "Clavier",
   "settings.shortcutHint": "Shift+clic sur une page remplit la plage · Échap ferme les fenêtres",
-
   "footer.local": "Fonctionne entièrement sur cet appareil — rien n’est envoyé.",
   "footer.source": "Code source",
   "footer.license": "Logiciel libre · MIT",
   "footer.projects": "Du même auteur",
-
   "ad.imgprint.name": "imgprint",
   "ad.imgprint.desc": "Imprimez plusieurs photos par feuille : format du papier, marges, 1 à 4 images par page, avertissements DPI et espace colorimétrique. Fichier unique, hors ligne, sept langues.",
   "ad.imgprint.cta": "Ouvrir imgprint",
   "ad.md2pdf.name": "md2pdf",
   "ad.md2pdf.desc": "Transformez du Markdown en PDF à texte vectoriel : maths LaTeX, chimie, SVG intégré, mise en page prête à imprimer. Fichier unique, hors ligne, aucune police à installer.",
   "ad.md2pdf.cta": "Ouvrir md2pdf",
-
   "common.apply": "Appliquer",
   "common.cancel": "Annuler",
   "common.close": "Fermer",
   "common.confirm": "Confirmer",
   "common.pages": "pages",
-
   "toast.copied": "Copié dans le presse-papiers",
   "toast.copyManual": "Sélectionné — appuyez sur Ctrl+C",
   "toast.linkCopied": "Lien de partage copié",
@@ -149,10 +134,11 @@
   "toast.invalid": "Cette saisie n’a pas été comprise",
   "toast.saved": "Ajouté à l’historique",
   "toast.reset": "Retour aux réglages par défaut",
-
   "a11y.map": "Carte de chaleur des pages",
   "a11y.grid": "Grille des pages",
   "a11y.output": "Plage de pages pour la boîte d’impression",
   "a11y.decrease": "Diminuer",
-  "a11y.increase": "Augmenter"
+  "a11y.increase": "Augmenter",
+  "range.directPlaceholder": "ex. 1-5, 8, 10-13",
+  "parity.directPlaceholder": "ex. odd:1-99; even:2-100"
 }

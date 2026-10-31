@@ -3,11 +3,9 @@
   "app.name": "PagePicker",
   "app.tagline": "Seitenbereiche für den Druckdialog, gemacht für Drucker ohne Duplexeinheit",
   "app.short": "Seitenbereich-Generator für den Druckdialog",
-
   "header.language": "Sprache",
   "header.settings": "Einstellungen",
   "header.github": "Quellcode auf GitHub",
-
   "heatmap.title": "Alle Seiten auf einen Blick",
   "heatmap.legendUnselected": "Nicht gedruckt",
   "heatmap.legendOdd": "Ungerade Seite",
@@ -17,23 +15,19 @@
   "heatmap.pageTitle": "Seite {n}",
   "heatmap.show": "Übersichtskarte anzeigen",
   "heatmap.highlightGaps": "Nicht ausgewählte Seiten markieren",
-
   "quick.selectAll": "Alle",
   "quick.clear": "Keine",
   "quick.invert": "Umkehren",
   "quick.odds": "Nur ungerade",
   "quick.evens": "Nur gerade",
-
   "total.label": "Seiten gesamt",
   "total.decrease": "Eine Seite weniger",
   "total.increase": "Eine Seite mehr",
   "total.hint": "1–2000",
-
   "action.label": "Beim Anwenden",
   "action.add": "Hinzufügen",
   "action.replace": "Ersetzen",
   "action.remove": "Entfernen",
-
   "range.title": "Ein zusammenhängender Seitenbereich",
   "range.desc": "Wählen Sie einen Bereich und wenden Sie ihn an.",
   "range.from": "Von",
@@ -47,7 +41,6 @@
   "range.invalid": "Nicht verstanden: {token}",
   "range.empty": "Geben Sie mindestens eine Seitenzahl ein",
   "range.outOfRange": "Seiten reichen von 1 bis {total}",
-
   "parity.title": "Ungerade und gerade",
   "parity.desc": "Erst eine Seite drucken, den Stapel wenden, dann die andere Seite drucken.",
   "parity.mode": "Behalten",
@@ -60,11 +53,9 @@
   "parity.limitHint": "Häkchen entfernen, um das ganze Dokument zu nutzen",
   "parity.direct": "Oder direkt eingeben",
   "parity.directHint": "odd:1-99; even:2-100 — dieselben zwei Seiten wie die Bedienelemente oben",
-
   "manual.title": "Einzeln auswählen",
   "manual.hint": "Klicken zum Umschalten · Shift+Klick füllt einen Bereich",
   "manual.selected": "{n} ausgewählt",
-
   "output.title": "Für den Druckdialog",
   "output.desc": "In „Seiten / Seitenbereich“ einfügen.",
   "output.tabAll": "Alle",
@@ -89,7 +80,6 @@
   "output.batchOff": "keine Aufteilung",
   "output.share": "Freigabelink kopieren",
   "output.shareHint": "Der Link enthält die Seitenanzahl und die Auswahl.",
-
   "records.title": "Verlauf",
   "records.desc": "Alles, was Sie kopieren, wird hier aufbewahrt.",
   "records.empty": "Noch nichts vorhanden. Kopieren Sie eine Ausgabe, dann erscheint sie hier.",
@@ -99,7 +89,6 @@
   "records.clearConfirm": "Alle gespeicherten Einträge löschen?",
   "records.pages": "{n} Seiten",
   "records.note": "Nur in diesem Browser gespeichert — wird nie hochgeladen.",
-
   "settings.title": "Einstellungen",
   "settings.language": "Sprache",
   "settings.languageAuto": "Automatisch",
@@ -119,25 +108,21 @@
   "settings.license": "Open Source · MIT",
   "settings.shortcuts": "Tastatur",
   "settings.shortcutHint": "Shift+Klick auf eine Seite füllt den Bereich · Esc schließt Dialoge",
-
   "footer.local": "Läuft vollständig auf diesem Gerät — nichts wird irgendwohin gesendet.",
   "footer.source": "Quellcode",
   "footer.license": "Open Source · MIT",
   "footer.projects": "Vom selben Autor",
-
   "ad.imgprint.name": "imgprint",
   "ad.imgprint.desc": "Mehrere Fotos pro Blatt drucken: Papierformat, Ränder, 1–4 Bilder pro Seite, Warnungen zu effektiver DPI und Farbraum. Eine einzige Datei, offline, sieben Sprachen.",
   "ad.imgprint.cta": "imgprint öffnen",
   "ad.md2pdf.name": "md2pdf",
   "ad.md2pdf.desc": "Markdown in ein PDF mit Vektortext verwandeln: LaTeX-Formeln, Chemie, Inline-SVG, druckfertiges Layout. Eine einzige Datei, offline, keine Schriften zu installieren.",
   "ad.md2pdf.cta": "md2pdf öffnen",
-
   "common.apply": "Anwenden",
   "common.cancel": "Abbrechen",
   "common.close": "Schließen",
   "common.confirm": "Bestätigen",
   "common.pages": "Seiten",
-
   "toast.copied": "In die Zwischenablage kopiert",
   "toast.copyManual": "Ausgewählt — mit Ctrl+C kopieren",
   "toast.linkCopied": "Freigabelink kopiert",
@@ -149,10 +134,11 @@
   "toast.invalid": "Diese Eingabe wurde nicht verstanden",
   "toast.saved": "Zum Verlauf hinzugefügt",
   "toast.reset": "Auf Standard zurückgesetzt",
-
   "a11y.map": "Seitenübersicht als Heatmap",
   "a11y.grid": "Seitenraster",
   "a11y.output": "Seitenbereich für den Druckdialog",
   "a11y.decrease": "Verringern",
-  "a11y.increase": "Erhöhen"
+  "a11y.increase": "Erhöhen",
+  "range.directPlaceholder": "z. B. 1-5, 8, 10-13",
+  "parity.directPlaceholder": "z. B. odd:1-99; even:2-100"
 }

@@ -3,11 +3,9 @@
   "app.name": "PagePicker",
   "app.tagline": "両面ユニットのないプリンター向けの、印刷ダイアログ用ページ範囲",
   "app.short": "印刷ダイアログ用のページ範囲ビルダー",
-
   "header.language": "言語",
   "header.settings": "設定",
   "header.github": "GitHub でソースを見る",
-
   "heatmap.title": "全ページをひと目で確認",
   "heatmap.legendUnselected": "印刷しない",
   "heatmap.legendOdd": "奇数面",
@@ -17,23 +15,19 @@
   "heatmap.pageTitle": "{n} ページ",
   "heatmap.show": "全体マップを表示",
   "heatmap.highlightGaps": "選択から外れたページを目立たせる",
-
   "quick.selectAll": "すべて",
   "quick.clear": "なし",
   "quick.invert": "反転",
   "quick.odds": "奇数のみ",
   "quick.evens": "偶数のみ",
-
   "total.label": "総ページ数",
   "total.decrease": "1ページ減らす",
   "total.increase": "1ページ増やす",
   "total.hint": "1〜2000",
-
   "action.label": "適用時",
   "action.add": "追加",
   "action.replace": "置き換え",
   "action.remove": "除外",
-
   "range.title": "連続したページ範囲",
   "range.desc": "範囲を選んで適用します。",
   "range.from": "開始",
@@ -47,7 +41,6 @@
   "range.invalid": "解釈できません：{token}",
   "range.empty": "ページ番号を1つ以上入力してください",
   "range.outOfRange": "ページは 1 〜 {total} の範囲です",
-
   "parity.title": "奇数と偶数",
   "parity.desc": "片面を印刷して用紙を裏返し、もう片面を印刷します。",
   "parity.mode": "保持",
@@ -60,11 +53,9 @@
   "parity.limitHint": "チェックを外すと文書全体になります",
   "parity.direct": "または直接入力",
   "parity.directHint": "odd:1-99; even:2-100 — 上と同じ2つの面を指定します",
-
   "manual.title": "1ページずつ選ぶ",
   "manual.hint": "クリックで切り替え · Shift+クリックで範囲をまとめて選択",
   "manual.selected": "{n} ページ選択中",
-
   "output.title": "印刷ダイアログ用",
   "output.desc": "「ページ / ページ範囲」に貼り付けます。",
   "output.tabAll": "すべて",
@@ -89,7 +80,6 @@
   "output.batchOff": "分割なし",
   "output.share": "共有リンクをコピー",
   "output.shareHint": "リンクには総ページ数と選択内容が含まれます。",
-
   "records.title": "履歴",
   "records.desc": "コピーした内容はここに残ります。",
   "records.empty": "まだありません。出力をコピーすると、ここに表示されます。",
@@ -99,7 +89,6 @@
   "records.clearConfirm": "保存した履歴をすべて削除しますか？",
   "records.pages": "{n} ページ",
   "records.note": "このブラウザ内だけに保存され、アップロードはされません。",
-
   "settings.title": "設定",
   "settings.language": "言語",
   "settings.languageAuto": "自動",
@@ -119,25 +108,21 @@
   "settings.license": "オープンソース · MIT",
   "settings.shortcuts": "キーボード",
   "settings.shortcutHint": "Shift+クリックで範囲をまとめて選択 · Esc でダイアログを閉じる",
-
   "footer.local": "すべてこの端末内で動作し、どこにも送信されません。",
   "footer.source": "ソースコード",
   "footer.license": "オープンソース · MIT",
   "footer.projects": "同じ作者のツール",
-
   "ad.imgprint.name": "imgprint",
   "ad.imgprint.desc": "1枚に複数の写真を印刷：用紙サイズ、余白、1ページ 1〜4 枚、実効 DPI と色空間の警告。単一ファイル・オフライン・7言語対応。",
   "ad.imgprint.cta": "imgprint を開く",
   "ad.md2pdf.name": "md2pdf",
   "ad.md2pdf.desc": "Markdown をベクターテキストの PDF に：LaTeX 数式、化学式、インライン SVG、印刷にそのまま使えるレイアウト。単一ファイル・オフライン・フォントのインストール不要。",
   "ad.md2pdf.cta": "md2pdf を開く",
-
   "common.apply": "適用",
   "common.cancel": "キャンセル",
   "common.close": "閉じる",
   "common.confirm": "確定",
   "common.pages": "ページ",
-
   "toast.copied": "クリップボードにコピーしました",
   "toast.copyManual": "選択しました。Ctrl+C でコピー",
   "toast.linkCopied": "共有リンクをコピーしました",
@@ -149,10 +134,11 @@
   "toast.invalid": "入力を解釈できませんでした",
   "toast.saved": "履歴に追加しました",
   "toast.reset": "初期設定に戻しました",
-
   "a11y.map": "ページ全体のヒートマップ",
   "a11y.grid": "ページグリッド",
   "a11y.output": "印刷ダイアログ用のページ範囲",
   "a11y.decrease": "減らす",
-  "a11y.increase": "増やす"
+  "a11y.increase": "増やす",
+  "range.directPlaceholder": "例: 1-5, 8, 10-13",
+  "parity.directPlaceholder": "例: odd:1-99; even:2-100"
 }

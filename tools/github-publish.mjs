@@ -29,7 +29,7 @@ const FILES = [
   "src/core.js", "src/app.js", "src/styles.css", "src/index.template.html",
   "src/i18n/en.json", "src/i18n/zh-CN.json", "src/i18n/zh-TW.json", "src/i18n/ja.json",
   "src/i18n/ko.json", "src/i18n/fr.json", "src/i18n/de.json",
-  "tools/build.mjs", "tools/check-i18n.mjs", "tools/github-publish.mjs",
+  "tools/build.mjs", "tools/check-i18n.mjs", "tools/github-publish.mjs", "tools/verify-deploy.mjs",
   "tests/core.test.mjs"
 ];
 
@@ -71,7 +71,7 @@ async function ensureRepo() {
   const created = await api("POST", "/user/repos", {
     name: REPO,
     description: "Print-dialog page-range builder for printers without a duplexer — odd/even sides, ranges, heat-map overview, copy button. One offline HTML file, 7 languages.",
-    homepage: "https://pagepicker.xszx.cc.cd",
+    homepage: "https://pagerange.xszx.cc.cd",
     private: false,
     has_issues: true,
     has_wiki: false,
@@ -147,7 +147,7 @@ async function publish() {
 
   await api("PATCH", `/repos/${OWNER}/${REPO}`, {
     description: "Print-dialog page-range builder for printers without a duplexer — odd/even sides, ranges, heat-map overview, copy button. One offline HTML file, 7 languages.",
-    homepage: "https://pagepicker.xszx.cc.cd"
+    homepage: "https://pagerange.xszx.cc.cd"
   });
   try {
     await api("PUT", `/repos/${OWNER}/${REPO}/topics`, {

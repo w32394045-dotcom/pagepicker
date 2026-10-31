@@ -3,11 +3,9 @@
   "app.name": "PagePicker",
   "app.tagline": "给打印对话框的页码范围——为没有双面器（翻页器）的打印机而做",
   "app.short": "打印页码选择器",
-
   "header.language": "语言",
   "header.settings": "设置",
   "header.github": "在 GitHub 查看源码",
-
   "heatmap.title": "一屏看全每一页",
   "heatmap.legendUnselected": "未选",
   "heatmap.legendOdd": "奇数面",
@@ -17,23 +15,19 @@
   "heatmap.pageTitle": "第 {n} 页",
   "heatmap.show": "显示顶部总览图",
   "heatmap.highlightGaps": "标出没选的页",
-
   "quick.selectAll": "全选",
   "quick.clear": "清空",
   "quick.invert": "反选",
   "quick.odds": "仅奇数",
   "quick.evens": "仅偶数",
-
   "total.label": "总页数",
   "total.decrease": "减一页",
   "total.increase": "加一页",
   "total.hint": "1–2000",
-
   "action.label": "并入方式",
   "action.add": "添加",
   "action.replace": "替换",
   "action.remove": "移除",
-
   "range.title": "一段连续页码",
   "range.desc": "选好起止页，再应用。",
   "range.from": "从",
@@ -47,7 +41,6 @@
   "range.invalid": "看不懂：{token}",
   "range.empty": "至少输入一个页码",
   "range.outOfRange": "页码只能是 1 到 {total}",
-
   "parity.title": "奇偶页",
   "parity.desc": "先打一面，翻纸叠，再打另一面。",
   "parity.mode": "保留",
@@ -60,11 +53,9 @@
   "parity.limitHint": "不勾选就是用整份文档",
   "parity.direct": "或直接输入",
   "parity.directHint": "odd:1-99; even:2-100——和上面两个控件是同一件事",
-
   "manual.title": "逐页点选",
   "manual.hint": "单击切换 · Shift+单击 可整段填充",
   "manual.selected": "已选 {n} 页",
-
   "output.title": "给打印对话框",
   "output.desc": "粘贴到「页面范围 / Pages」。",
   "output.tabAll": "合并",
@@ -89,7 +80,6 @@
   "output.batchOff": "不分批",
   "output.share": "复制分享链接",
   "output.shareHint": "链接会带上总页数和当前选择。",
-
   "records.title": "记录",
   "records.desc": "每次复制都会留一条。",
   "records.empty": "还没有记录。复制一次输出就会出现在这里。",
@@ -99,7 +89,6 @@
   "records.clearConfirm": "要删除全部记录吗？",
   "records.pages": "{n} 页",
   "records.note": "只存在这个浏览器里，不会上传。",
-
   "settings.title": "设置",
   "settings.language": "语言",
   "settings.languageAuto": "自动检测",
@@ -119,25 +108,21 @@
   "settings.license": "开源 · MIT",
   "settings.shortcuts": "键盘",
   "settings.shortcutHint": "Shift+单击页码可整段填充 · Esc 关闭弹窗",
-
   "footer.local": "完全本机执行，不连网。",
   "footer.source": "源码",
   "footer.license": "开源 · MIT",
   "footer.projects": "同一个作者的其他工具",
-
   "ad.imgprint.name": "图片打印",
   "ad.imgprint.desc": "多张图排版到一张纸上：纸张、页边距、每页 1–4 张，并提示有效 DPI 与色彩空间。单文件、离线、七种语言。",
   "ad.imgprint.cta": "打开图片打印",
   "ad.md2pdf.name": "md2pdf",
   "ad.md2pdf.desc": "把 Markdown 排成矢量文字 PDF：LaTeX 公式、化学式、内嵌 SVG，直接可印。单文件、离线、无需装字体。",
   "ad.md2pdf.cta": "打开 md2pdf",
-
   "common.apply": "应用",
   "common.cancel": "取消",
   "common.close": "关闭",
   "common.confirm": "确定",
   "common.pages": "页",
-
   "toast.copied": "已复制到剪贴板",
   "toast.copyManual": "已选中，按 Ctrl+C 复制",
   "toast.linkCopied": "分享链接已复制",
@@ -149,10 +134,11 @@
   "toast.invalid": "这段输入没看懂",
   "toast.saved": "已存入记录",
   "toast.reset": "已恢复默认",
-
   "a11y.map": "页码总览图",
   "a11y.grid": "页码网格",
   "a11y.output": "给打印对话框的页码范围",
   "a11y.decrease": "减少",
-  "a11y.increase": "增加"
+  "a11y.increase": "增加",
+  "range.directPlaceholder": "例如 1-5, 8, 10-13",
+  "parity.directPlaceholder": "例如 odd:1-99; even:2-100"
 }

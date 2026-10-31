@@ -15,11 +15,11 @@ Source: [github.com/w32394045-dotcom/pagepicker](https://github.com/w32394045-do
 
 ## Try it
 
-**Primary: https://pagepicker.xszx.cc.cd** — this is the one to bookmark.
+**Primary: https://pagerange.xszx.cc.cd** — this is the one to bookmark.
 
 | Entry | URL | When to use it |
 | --- | --- | --- |
-| **Primary** | **https://pagepicker.xszx.cc.cd** | Default (custom domain, Cloudflare Worker) |
+| **Primary** | **https://pagerange.xszx.cc.cd** | Default (custom domain, Cloudflare Worker) |
 | Mirror 1 | https://pagepicker.w32394045.workers.dev | Same Worker, native address — if DNS misbehaves |
 | Mirror 2 | https://w32394045-dotcom.github.io/pagepicker/ | GitHub Pages — if Cloudflare is down entirely |
 

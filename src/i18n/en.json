@@ -3,11 +3,9 @@
   "app.name": "PagePicker",
   "app.tagline": "Print-dialog page ranges, built for printers without a duplexer",
   "app.short": "Page-range builder for the print dialog",
-
   "header.language": "Language",
   "header.settings": "Settings",
   "header.github": "Source on GitHub",
-
   "heatmap.title": "Every page at a glance",
   "heatmap.legendUnselected": "Not printed",
   "heatmap.legendOdd": "Odd side",
@@ -17,23 +15,19 @@
   "heatmap.pageTitle": "Page {n}",
   "heatmap.show": "Show the overview map",
   "heatmap.highlightGaps": "Flag the pages left out",
-
   "quick.selectAll": "All",
   "quick.clear": "None",
   "quick.invert": "Invert",
   "quick.odds": "Odd only",
   "quick.evens": "Even only",
-
   "total.label": "Total pages",
   "total.decrease": "One page fewer",
   "total.increase": "One page more",
   "total.hint": "1–2000",
-
   "action.label": "When applying",
   "action.add": "Add",
   "action.replace": "Replace",
   "action.remove": "Remove",
-
   "range.title": "A run of pages",
   "range.desc": "Pick a span, then apply it.",
   "range.from": "From",
@@ -47,7 +41,6 @@
   "range.invalid": "Not understood: {token}",
   "range.empty": "Type at least one page number",
   "range.outOfRange": "Pages run from 1 to {total}",
-
   "parity.title": "Odd and even",
   "parity.desc": "Print one side, flip the stack, print the other.",
   "parity.mode": "Keep",
@@ -60,11 +53,9 @@
   "parity.limitHint": "Untick to use the whole document",
   "parity.direct": "Or type it",
   "parity.directHint": "odd:1-99; even:2-100 — the same two sides as the controls above",
-
   "manual.title": "Pick them one by one",
   "manual.hint": "Click to toggle · Shift-click to fill a span",
   "manual.selected": "{n} selected",
-
   "output.title": "For the print dialog",
   "output.desc": "Paste into “Pages / Page range”.",
   "output.tabAll": "All",
@@ -89,7 +80,6 @@
   "output.batchOff": "no batching",
   "output.share": "Copy share link",
   "output.shareHint": "The link carries the page count and the selection.",
-
   "records.title": "History",
   "records.desc": "Everything you copy is kept here.",
   "records.empty": "Nothing yet. Copy an output and it will show up here.",
@@ -99,7 +89,6 @@
   "records.clearConfirm": "Delete every saved record?",
   "records.pages": "{n} pages",
   "records.note": "Kept in this browser only — never uploaded.",
-
   "settings.title": "Settings",
   "settings.language": "Language",
   "settings.languageAuto": "Automatic",
@@ -119,25 +108,21 @@
   "settings.license": "Open source · MIT",
   "settings.shortcuts": "Keyboard",
   "settings.shortcutHint": "Shift-click a page fills the span · Esc closes dialogs",
-
   "footer.local": "Runs entirely on this device — nothing is sent anywhere.",
   "footer.source": "Source code",
   "footer.license": "Open source · MIT",
   "footer.projects": "From the same author",
-
   "ad.imgprint.name": "imgprint",
   "ad.imgprint.desc": "Print several photos per sheet: paper size, margins, 1–4 images a page, DPI and colour-space warnings. Single file, offline, seven languages.",
   "ad.imgprint.cta": "Open imgprint",
   "ad.md2pdf.name": "md2pdf",
   "ad.md2pdf.desc": "Turn Markdown into a vector-text PDF: LaTeX maths, chemistry, inline SVG, print-ready page layout. Single file, offline, no fonts to install.",
   "ad.md2pdf.cta": "Open md2pdf",
-
   "common.apply": "Apply",
   "common.cancel": "Cancel",
   "common.close": "Close",
   "common.confirm": "Confirm",
   "common.pages": "pages",
-
   "toast.copied": "Copied to clipboard",
   "toast.copyManual": "Selected — press Ctrl+C",
   "toast.linkCopied": "Share link copied",
@@ -149,10 +134,11 @@
   "toast.invalid": "That input was not understood",
   "toast.saved": "Added to history",
   "toast.reset": "Back to defaults",
-
   "a11y.map": "Page overview map",
   "a11y.grid": "Page grid",
   "a11y.output": "Page range for the print dialog",
   "a11y.decrease": "Decrease",
-  "a11y.increase": "Increase"
+  "a11y.increase": "Increase",
+  "range.directPlaceholder": "e.g. 1-5, 8, 10-13",
+  "parity.directPlaceholder": "e.g. odd:1-99; even:2-100"
 }

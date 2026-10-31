@@ -14,11 +14,11 @@ PagePicker（打印页码选择器）把「这份文档到底要打哪几页」�
 
 ## 在线使用
 
-**主站：https://pagepicker.xszx.cc.cd** —— 平时用这个就行。
+**主站：https://pagerange.xszx.cc.cd** —— 平时用这个就行。
 
 | 入口 | 地址 | 什么时候用 |
 | --- | --- | --- |
-| **主站** | **https://pagepicker.xszx.cc.cd** | 默认用这个（自建域名，Cloudflare Worker） |
+| **主站** | **https://pagerange.xszx.cc.cd** | 默认用这个（自建域名，Cloudflare Worker） |
 | 备用 1 | https://pagepicker.w32394045.workers.dev | 同一个 Worker 的原生地址，域名解析出问题时用 |
 | 备用 2 | https://w32394045-dotcom.github.io/pagepicker/ | GitHub Pages，Cloudflare 整体不可用时用 |
 
